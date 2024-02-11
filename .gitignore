@@ -1,0 +1,6 @@
+stable_diffusion_bot
+.idea/
+sd_discord_bot.sqlite
+*.exe
+*.sqlite
+*.json
