@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"inkbunny/gui"
 	"io"
 	"log"
 	"net/http"
@@ -166,24 +167,12 @@ func getUserID(username string) (User, error) {
 }
 
 func main() {
+	user := gui.Login(baseURL)
 	// prompt for username and password
-	var username, password string
-	fmt.Print("Enter username: ")
-	fmt.Scanln(&username)
-	if username == "" {
-		username = "guest"
-	}
-	fmt.Print("Enter password: ")
-	fmt.Scanln(&password)
-	sid, err := login(username, password)
-	if err != nil {
-		fmt.Println("Login error:", err)
-		return
-	}
 
-	log.Printf("Logged in as [%s] with session ID [%v] ", username, sid)
+	log.Printf("Logged in as [%s] with session ID [%v] ", user.Username, user.Sid)
 
-	watchlist1, err := getWatchlist(sid)
+	watchlist1, err := getWatchlist(user.Sid)
 	if err != nil {
 		log.Println("Error getting watchlist for user 1:", err)
 		return
@@ -191,7 +180,7 @@ func main() {
 
 	fmt.Println("Watch list:", watchlist1)
 
-	if err := logout(sid); err != nil {
+	if err := logout(user.Sid); err != nil {
 		log.Println("Logout error:", err)
 		return
 	}
