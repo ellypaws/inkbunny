@@ -4,8 +4,12 @@ package gui
 // from the Bubbles component library.
 
 import (
+	"encoding/json"
 	"fmt"
 	"inkbunny/entities"
+	"io"
+	"net/http"
+	"net/url"
 	"strings"
 
 	"github.com/charmbracelet/bubbles/cursor"
@@ -26,7 +30,7 @@ var (
 	blurredButton = fmt.Sprintf("[ %s ]", blurredStyle.Render("Submit"))
 )
 
-type login struct {
+type loginForm struct {
 	user       *entities.Login
 	focusIndex int
 	submitted  bool
@@ -34,8 +38,8 @@ type login struct {
 	cursorMode cursor.Mode
 }
 
-func InitialModel(user *entities.Login) login {
-	m := login{
+func InitialModel(user *entities.Login) loginForm {
+	m := loginForm{
 		user:   user,
 		inputs: make([]textinput.Model, 2),
 	}
@@ -65,11 +69,11 @@ func InitialModel(user *entities.Login) login {
 	return m
 }
 
-func (m login) Init() tea.Cmd {
+func (m loginForm) Init() tea.Cmd {
 	return textinput.Blink
 }
 
-func (m login) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m loginForm) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	if m.submitted {
 		return m, nil
 	}
@@ -100,7 +104,13 @@ func (m login) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 
 				m.submitted = true
-				return m, func() tea.Msg { return m.user }
+
+				m.user.Username = m.inputs[0].Value()
+				m.user.Password = m.inputs[1].Value()
+
+				login := m.login(m.user)
+
+				return m, login
 			}
 
 			// Cycle indexes
@@ -141,7 +151,39 @@ func (m login) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, cmd
 }
 
-func (m *login) updateInputs(msg tea.Msg) tea.Cmd {
+// Wrap casts a message into a tea.Cmd
+func Wrap(msg any) tea.Cmd {
+	return func() tea.Msg {
+		return msg
+	}
+}
+
+// login sends a login request to the server using an *entities.Login
+// It mutates the loginForm and returns *entities.Login
+func (m *loginForm) login(user *entities.Login) tea.Cmd {
+	if user.Username == "" {
+		user.Username = "guest"
+	} else if user.Password == "" {
+		return Wrap(fmt.Errorf("username is set but password is empty"))
+	}
+	resp, err := http.PostForm(entities.BaseURL+"login.php", url.Values{"username": {user.Username}, "password": {user.Password}})
+	if err != nil {
+		return Wrap(err)
+	}
+	defer resp.Body.Close()
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return Wrap(err)
+	}
+
+	if err = json.Unmarshal(body, user); err != nil {
+		return Wrap(err)
+	}
+
+	return Wrap(user)
+}
+
+func (m *loginForm) updateInputs(msg tea.Msg) tea.Cmd {
 	cmds := make([]tea.Cmd, len(m.inputs))
 
 	// Only text inputs with Focus() set will respond, so it's safe to simply
@@ -159,7 +201,7 @@ func (m *login) updateInputs(msg tea.Msg) tea.Cmd {
 	return tea.Batch(cmds...)
 }
 
-func (m login) View() string {
+func (m loginForm) View() string {
 	var b strings.Builder
 
 	for i := range m.inputs {

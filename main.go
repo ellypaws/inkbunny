@@ -14,13 +14,9 @@ import (
 	"strings"
 )
 
-const (
-	baseURL = "https://inkbunny.net/api_"
-)
-
 // Function to get watchlist for a given user
 func getWatchlist(sid string) ([]string, error) {
-	resp, err := http.Get(fmt.Sprintf("%swatchlist.php?sid=%s&user_id=%s", baseURL, sid))
+	resp, err := http.Get(fmt.Sprintf("%swatchlist.php?sid=%s&user_id=%s", entities.BaseURL, sid))
 	if err != nil {
 		return nil, err
 	}
@@ -55,7 +51,7 @@ func findMutual(a, b []string) []string {
 }
 
 func changeRating(sid string) error {
-	resp, err := http.PostForm(baseURL+"userrating.php", url.Values{
+	resp, err := http.PostForm(entities.BaseURL+"userrating.php", url.Values{
 		"sid":    {sid},
 		"tag[2]": {"yes"},
 		"tag[3]": {"yes"},
@@ -84,7 +80,7 @@ func changeRating(sid string) error {
 }
 
 func logout(sid string) error {
-	resp, err := http.PostForm(baseURL+"logout.php", url.Values{"sid": {sid}})
+	resp, err := http.PostForm(entities.BaseURL+"logout.php", url.Values{"sid": {sid}})
 	if err != nil {
 		return err
 	}
@@ -107,7 +103,7 @@ func logout(sid string) error {
 }
 
 func getUserID(username string) (entities.User, error) {
-	resp, err := http.Get(fmt.Sprintf("%susername_autosuggest.php?username=%s", baseURL, username))
+	resp, err := http.Get(fmt.Sprintf("%susername_autosuggest.php?username=%s", entities.BaseURL, username))
 	if err != nil {
 		return entities.User{}, err
 	}
@@ -152,7 +148,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, tea.Quit
 		}
 		m.user = *msg
-		return m.login()
+		return m, gui.Wrap(GetWatchlist{})
 	case GetWatchlist:
 		watchlist, err := getWatchlist(m.user.Sid)
 		if err != nil {
@@ -184,37 +180,7 @@ func initialModel() model {
 	}
 }
 
-func (m model) login() (model, tea.Cmd) {
-	user := &m.user
-	if user.Username == "" {
-		user.Username = "guest"
-	} else if user.Password == "" {
-		return m, wrap(fmt.Errorf("username is set but password is empty"))
-	}
-	resp, err := http.PostForm(baseURL+"login.php", url.Values{"username": {user.Username}, "password": {user.Password}})
-	if err != nil {
-		return m, wrap(err)
-	}
-	defer resp.Body.Close()
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return m, wrap(err)
-	}
-
-	if err = json.Unmarshal(body, user); err != nil {
-		return m, wrap(err)
-	}
-
-	return m, wrap(GetWatchlist{})
-}
-
 type GetWatchlist struct{}
-
-func wrap(msg any) tea.Cmd {
-	return func() tea.Msg {
-		return msg
-	}
-}
 
 func main() {
 	if _, err := tea.NewProgram(
