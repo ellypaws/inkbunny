@@ -4,12 +4,8 @@ package gui
 // from the Bubbles component library.
 
 import (
-	"encoding/json"
 	"fmt"
-	"io"
-	"net/http"
-	"net/url"
-	"os"
+	"inkbunny/entities"
 	"strings"
 
 	"github.com/charmbracelet/bubbles/cursor"
@@ -31,13 +27,14 @@ var (
 )
 
 type model struct {
-	user       *User
+	user       *entities.Login
 	focusIndex int
+	submitted  bool
 	inputs     []textinput.Model
 	cursorMode cursor.Mode
 }
 
-func initialModel(user *User) model {
+func InitialModel(user *entities.Login) model {
 	m := model{
 		user:   user,
 		inputs: make([]textinput.Model, 2),
@@ -72,47 +69,13 @@ func (m model) Init() tea.Cmd {
 	return textinput.Blink
 }
 
-type User struct {
-	Sid      string  `json:"sid"`
-	Username string  `json:"username,omitempty"`
-	Password *string `json:"password,omitempty"`
-}
-
-// Function to login and get session ID
-func (user *User) login() error {
-	if user == nil {
-		return fmt.Errorf("user is nil")
-	}
-	if user.Password == nil {
-		return fmt.Errorf("password is nil")
-	}
-	if user.Username == "" {
-		user.Username = "guest"
-	}
-	resp, err := http.PostForm(baseURL+"login.php", url.Values{"username": {user.Username}, "password": {*user.Password}})
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return err
-	}
-
-	if err := json.Unmarshal(body, user); err != nil {
-		return err
-	}
-
-	return nil
-}
-
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	if m.submitted {
+		return m, nil
+	}
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
-		case "ctrl+c", "esc":
-			return m, tea.Quit
-
 		// Change cursor mode
 		case "ctrl+r":
 			m.cursorMode++
@@ -135,11 +98,9 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				for i := range m.inputs {
 					m.inputs[i].Blur()
 				}
-				if err := m.user.login(); err != nil {
-					fmt.Printf("could not login: %s\n", err)
-					os.Exit(1)
-				}
-				return m, tea.Quit
+
+				m.submitted = true
+				return m, func() tea.Msg { return m.user }
 			}
 
 			// Cycle indexes
@@ -191,15 +152,11 @@ func (m *model) updateInputs(msg tea.Msg) tea.Cmd {
 		case 0:
 			m.user.Username = m.inputs[i].Value()
 		case 1:
-			m.user.SetPassword(m.inputs[i].Value())
+			m.user.Password = m.inputs[i].Value()
 		}
 	}
 
 	return tea.Batch(cmds...)
-}
-
-func (user *User) SetPassword(password string) {
-	user.Password = &password
 }
 
 func (m model) View() string {
@@ -219,16 +176,4 @@ func (m model) View() string {
 	fmt.Fprintf(&b, "\n\n%s", *button)
 
 	return b.String()
-}
-
-var baseURL string
-
-func Login(url string) User {
-	baseURL = url
-	var user User
-	if _, err := tea.NewProgram(initialModel(&user)).Run(); err != nil {
-		fmt.Printf("could not start program: %s\n", err)
-		os.Exit(1)
-	}
-	return user
 }

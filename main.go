@@ -3,47 +3,20 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	tea "github.com/charmbracelet/bubbletea"
+	"inkbunny/entities"
 	"inkbunny/gui"
 	"io"
 	"log"
 	"net/http"
 	"net/url"
 	"slices"
+	"strings"
 )
 
 const (
 	baseURL = "https://inkbunny.net/api_"
 )
-
-type LoginResponse struct {
-	Sid string `json:"sid"`
-}
-
-type WatchlistResponse struct {
-	Watches []struct {
-		Username string `json:"username"`
-	} `json:"watches"`
-}
-
-// Function to login and get session ID
-func login(username, password string) (string, error) {
-	resp, err := http.PostForm(baseURL+"login.php", url.Values{"username": {username}, "password": {password}})
-	if err != nil {
-		return "", err
-	}
-	defer resp.Body.Close()
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return "", err
-	}
-
-	var loginResp LoginResponse
-	if err := json.Unmarshal(body, &loginResp); err != nil {
-		return "", err
-	}
-
-	return loginResp.Sid, nil
-}
 
 // Function to get watchlist for a given user
 func getWatchlist(sid string) ([]string, error) {
@@ -57,7 +30,7 @@ func getWatchlist(sid string) ([]string, error) {
 		return nil, err
 	}
 
-	var watchResp WatchlistResponse
+	var watchResp entities.WatchlistResponse
 	if err := json.Unmarshal(body, &watchResp); err != nil {
 		return nil, err
 	}
@@ -98,7 +71,7 @@ func changeRating(sid string) error {
 		return err
 	}
 
-	var loginResp LoginResponse
+	var loginResp entities.Login
 	if err := json.Unmarshal(body, &loginResp); err != nil {
 		return err
 	}
@@ -108,11 +81,6 @@ func changeRating(sid string) error {
 	}
 
 	return nil
-}
-
-type LogoutResponse struct {
-	Sid    string `json:"sid"`
-	Logout string `json:"logout"`
 }
 
 func logout(sid string) error {
@@ -126,7 +94,7 @@ func logout(sid string) error {
 		return err
 	}
 
-	var logoutResp LogoutResponse
+	var logoutResp entities.LogoutResponse
 	if err = json.Unmarshal(body, &logoutResp); err != nil {
 		return err
 	}
@@ -138,51 +106,112 @@ func logout(sid string) error {
 	return nil
 }
 
-type User struct {
-	ID         string `json:"id"`
-	Value      string `json:"value"`
-	Icon       string `json:"icon"`
-	Info       string `json:"info"`
-	SingleWord string `json:"singleword"`
-	SearchTerm string `json:"searchterm"`
-}
-
-func getUserID(username string) (User, error) {
+func getUserID(username string) (entities.User, error) {
 	resp, err := http.Get(fmt.Sprintf("%susername_autosuggest.php?username=%s", baseURL, username))
 	if err != nil {
-		return User{}, err
+		return entities.User{}, err
 	}
 	defer resp.Body.Close()
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return User{}, err
+		return entities.User{}, err
 	}
 
-	var user User
+	var user entities.User
 	if err := json.Unmarshal(body, &user); err != nil {
-		return User{}, err
+		return entities.User{}, err
 	}
 
 	return user, nil
 }
 
-func main() {
-	user := gui.Login(baseURL)
-	// prompt for username and password
+type model struct {
+	user entities.Login
+	l    tea.Model
+}
 
-	log.Printf("Logged in as [%s] with session ID [%v] ", user.Username, user.Sid)
+func (m model) Init() tea.Cmd { return nil }
 
-	watchlist1, err := getWatchlist(user.Sid)
+func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	var cmd tea.Cmd
+	switch msg := msg.(type) {
+	case error:
+		log.Println("Error:", msg)
+	case tea.KeyMsg:
+		switch msg.String() {
+		case "ctrl+c":
+			return m, tea.Quit
+		}
+		m.l, cmd = m.l.Update(msg)
+		return m, cmd
+	case *entities.Login:
+		if msg == nil {
+			log.Println("Login message is nil")
+			return m, tea.Quit
+		}
+		m.user = *msg
+		m, cmd = m.login()
+		return m, cmd
+	}
+	return m, nil
+}
+
+func (m model) View() string {
+	view := strings.Builder{}
+	view.WriteString("Inkbunny CLI\n\n")
+	view.WriteString(m.l.View())
+	switch {
+	case m.user.Sid != "":
+		view.WriteString(fmt.Sprintf("\n\nLogged in as [%s] with session ID [%s]", m.user.Username, m.user.Sid))
+
+		watchlist, err := getWatchlist(m.user.Sid)
+		if err != nil {
+			log.Println("Error getting watchlist:", err)
+		}
+
+		view.WriteString(fmt.Sprintf("\nWatch list: %v", watchlist))
+	}
+	return view.String()
+}
+
+func initialModel() model {
+	return model{
+		l: gui.InitialModel(&entities.Login{}),
+	}
+}
+
+func (m model) login() (model, tea.Cmd) {
+	user := &m.user
+	if user.Username == "" {
+		user.Username = "guest"
+	} else if user.Password == "" {
+		fmt.Errorf("username is set but password is empty")
+	}
+	resp, err := http.PostForm(baseURL+"login.php", url.Values{"username": {user.Username}, "password": {user.Password}})
 	if err != nil {
-		log.Println("Error getting watchlist for user 1:", err)
-		return
+		return m, wrap(err)
+	}
+	defer resp.Body.Close()
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return m, wrap(err)
 	}
 
-	fmt.Println("Watch list:", watchlist1)
-
-	if err := logout(user.Sid); err != nil {
-		log.Println("Logout error:", err)
-		return
+	if err = json.Unmarshal(body, user); err != nil {
+		return m, wrap(err)
 	}
-	log.Println("Logged out")
+
+	return m, nil
+}
+
+func wrap(msg any) tea.Cmd {
+	return func() tea.Msg {
+		return msg
+	}
+}
+
+func main() {
+	if _, err := tea.NewProgram(initialModel()).Run(); err != nil {
+		log.Fatalf("Error running program: %v", err)
+	}
 }
