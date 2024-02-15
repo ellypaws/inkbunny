@@ -4,12 +4,8 @@ package gui
 // from the Bubbles component library.
 
 import (
-	"encoding/json"
 	"fmt"
-	"inkbunny/entities"
-	"io"
-	"net/http"
-	"net/url"
+	"inkbunny/api"
 	"strings"
 
 	"github.com/charmbracelet/bubbles/cursor"
@@ -31,14 +27,14 @@ var (
 )
 
 type loginForm struct {
-	user       *entities.Login
+	user       *api.Credentials
 	focusIndex int
 	submitted  bool
 	inputs     []textinput.Model
 	cursorMode cursor.Mode
 }
 
-func InitialModel(user *entities.Login) loginForm {
+func InitialModel(user *api.Credentials) loginForm {
 	m := loginForm{
 		user:   user,
 		inputs: make([]textinput.Model, 2),
@@ -108,9 +104,9 @@ func (m loginForm) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.user.Username = m.inputs[0].Value()
 				m.user.Password = m.inputs[1].Value()
 
-				login := m.login(m.user)
+				response := api.Login(m.user)
 
-				return m, login
+				return m, response
 			}
 
 			// Cycle indexes
@@ -149,38 +145,6 @@ func (m loginForm) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	cmd := m.updateInputs(msg)
 
 	return m, cmd
-}
-
-// Wrap casts a message into a tea.Cmd
-func Wrap(msg any) tea.Cmd {
-	return func() tea.Msg {
-		return msg
-	}
-}
-
-// login sends a login request to the server using an *entities.Login
-// It mutates the loginForm and returns *entities.Login
-func (m *loginForm) login(user *entities.Login) tea.Cmd {
-	if user.Username == "" {
-		user.Username = "guest"
-	} else if user.Password == "" {
-		return Wrap(fmt.Errorf("username is set but password is empty"))
-	}
-	resp, err := http.PostForm(entities.BaseURL+"login.php", url.Values{"username": {user.Username}, "password": {user.Password}})
-	if err != nil {
-		return Wrap(err)
-	}
-	defer resp.Body.Close()
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return Wrap(err)
-	}
-
-	if err = json.Unmarshal(body, user); err != nil {
-		return Wrap(err)
-	}
-
-	return Wrap(user)
 }
 
 func (m *loginForm) updateInputs(msg tea.Msg) tea.Cmd {

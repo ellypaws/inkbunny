@@ -1,6 +1,6 @@
-package entities
+package api
 
-type Login struct {
+type Credentials struct {
 	Sid      string `json:"sid"`
 	Username string `json:"username,omitempty"`
 	Password string `json:"password,omitempty"`
