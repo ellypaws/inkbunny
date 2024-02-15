@@ -128,6 +128,7 @@ func getUserID(username string) (entities.User, error) {
 type model struct {
 	user entities.Login
 	l    tea.Model
+	p    tea.Model
 }
 
 func (m model) Init() tea.Cmd { return nil }
@@ -137,6 +138,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case error:
 		log.Println("Error:", msg)
+		return m, tea.Quit
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "ctrl+c":
@@ -150,9 +152,16 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, tea.Quit
 		}
 		m.user = *msg
-		m, cmd = m.login()
-		return m, cmd
+		return m.login()
+	case GetWatchlist:
+		watchlist, err := getWatchlist(m.user.Sid)
+		if err != nil {
+			log.Println("Error getting watchlist:", err)
+		}
+
+		m.p = m.p.(gui.Pager).SetContent(strings.Join(watchlist, "\n"))
 	}
+	m.p, cmd = m.p.Update(msg)
 	return m, nil
 }
 
@@ -162,14 +171,8 @@ func (m model) View() string {
 	view.WriteString(m.l.View())
 	switch {
 	case m.user.Sid != "":
-		view.WriteString(fmt.Sprintf("\n\nLogged in as [%s] with session ID [%s]", m.user.Username, m.user.Sid))
-
-		watchlist, err := getWatchlist(m.user.Sid)
-		if err != nil {
-			log.Println("Error getting watchlist:", err)
-		}
-
-		view.WriteString(fmt.Sprintf("\nWatch list: %v", watchlist))
+		view.WriteString(fmt.Sprintf("\n\nLogged in as [%s] with session ID [%s]\n", m.user.Username, m.user.Sid))
+		view.WriteString(m.p.View())
 	}
 	return view.String()
 }
@@ -177,6 +180,7 @@ func (m model) View() string {
 func initialModel() model {
 	return model{
 		l: gui.InitialModel(&entities.Login{}),
+		p: gui.NewPager("Fetching watchlist..."),
 	}
 }
 
@@ -185,7 +189,7 @@ func (m model) login() (model, tea.Cmd) {
 	if user.Username == "" {
 		user.Username = "guest"
 	} else if user.Password == "" {
-		fmt.Errorf("username is set but password is empty")
+		return m, wrap(fmt.Errorf("username is set but password is empty"))
 	}
 	resp, err := http.PostForm(baseURL+"login.php", url.Values{"username": {user.Username}, "password": {user.Password}})
 	if err != nil {
@@ -201,8 +205,10 @@ func (m model) login() (model, tea.Cmd) {
 		return m, wrap(err)
 	}
 
-	return m, nil
+	return m, wrap(GetWatchlist{})
 }
+
+type GetWatchlist struct{}
 
 func wrap(msg any) tea.Cmd {
 	return func() tea.Msg {
@@ -211,7 +217,11 @@ func wrap(msg any) tea.Cmd {
 }
 
 func main() {
-	if _, err := tea.NewProgram(initialModel()).Run(); err != nil {
+	if _, err := tea.NewProgram(
+		initialModel(),
+		tea.WithAltScreen(),
+		tea.WithMouseCellMotion(),
+	).Run(); err != nil {
 		log.Fatalf("Error running program: %v", err)
 	}
 }
