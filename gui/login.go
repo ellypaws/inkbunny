@@ -104,7 +104,7 @@ func (m loginForm) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.user.Username = m.inputs[0].Value()
 				m.user.Password = m.inputs[1].Value()
 
-				response := api.Login(m.user)
+				response := m.user.Login()
 
 				return m, response
 			}

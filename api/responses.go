@@ -13,8 +13,13 @@ type LogoutResponse struct {
 
 type WatchlistResponse struct {
 	Watches []struct {
+		UserID   string `json:"user_id"`
 		Username string `json:"username"`
 	} `json:"watches"`
+}
+
+type AutocompleteResponse struct {
+	Results []User `json:"results"`
 }
 
 type User struct {

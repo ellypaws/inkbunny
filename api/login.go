@@ -5,17 +5,16 @@ import (
 	"fmt"
 	tea "github.com/charmbracelet/bubbletea"
 	"io"
-	"net/http"
 	"net/url"
 )
 
-func Login(user *Credentials) tea.Cmd {
+func (user *Credentials) Login() tea.Cmd {
 	if user.Username == "" {
 		user.Username = "guest"
 	} else if user.Password == "" {
 		return Wrap(fmt.Errorf("username is set but password is empty"))
 	}
-	resp, err := http.PostForm(inkbunnyURL("login"), url.Values{"username": {user.Username}, "password": {user.Password}})
+	resp, err := user.PostForm(inkbunnyURL("login"), url.Values{"username": {user.Username}, "password": {user.Password}})
 	if err != nil {
 		return Wrap(err)
 	}
@@ -32,8 +31,8 @@ func Login(user *Credentials) tea.Cmd {
 	return Wrap(user)
 }
 
-func logout(sid string) error {
-	resp, err := http.Get(inkbunnyURL("logout", url.Values{"sid": {sid}}))
+func (user *Credentials) logout() error {
+	resp, err := user.Get(inkbunnyURL("logout", url.Values{"sid": {user.Sid}}))
 	if err != nil {
 		return err
 	}

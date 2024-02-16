@@ -38,7 +38,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.user = *msg
 		return m, api.Wrap(GetWatchlist{})
 	case GetWatchlist:
-		watchlist, err := api.GetWatchlist(m.user.Sid)
+		watchlist, err := api.GetWatchlist(m.user)
 		if err != nil {
 			log.Println("Error getting watchlist:", err)
 		}
