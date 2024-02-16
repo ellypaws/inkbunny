@@ -104,13 +104,28 @@ func findMutual(a, b []string) []string {
 	return mutual
 }
 
-func changeRating(sid string) error {
-	resp, err := http.PostForm(inkbunnyURL("userrating"), url.Values{
-		"sid":    {sid},
-		"tag[2]": {"yes"},
-		"tag[3]": {"yes"},
-		"tag[4]": {"yes"},
-		"tag[5]": {"yes"},
+type Rating struct {
+	General        bool `json:"1,omitempty"` // Show images with Rating tag: "General - Suitable for all ages".
+	Nudity         bool `json:"2,omitempty"` // Show images with Rating tag: "Nudity - Nonsexual nudity exposing breasts or genitals (must not show arousal)".
+	MildViolence   bool `json:"3,omitempty"` // Show images with Rating tag: "Violence - Mild violence".
+	Sexual         bool `json:"4,omitempty"` // Show images with Rating tag: "Sexual Themes - Erotic imagery, sexual activity or arousal".
+	StrongViolence bool `json:"5,omitempty"` // Show images with Rating tag: "Strong Violence - Strong violence, blood, serious injury or death".
+}
+
+func optIn(b bool) string {
+	if b {
+		return "yes"
+	}
+	return "no"
+}
+
+func (user Credentials) changeRating(rating Rating) error {
+	resp, err := user.PostForm(inkbunnyURL("userrating"), url.Values{
+		"sid":    {user.Sid},
+		"tag[2]": {optIn(rating.Nudity)},
+		"tag[3]": {optIn(rating.MildViolence)},
+		"tag[4]": {optIn(rating.Sexual)},
+		"tag[5]": {optIn(rating.StrongViolence)},
 	})
 	if err != nil {
 		return err
@@ -126,8 +141,8 @@ func changeRating(sid string) error {
 		return err
 	}
 
-	if loginResp.Sid != sid {
-		return fmt.Errorf("session ID changed after rating change, expected: [%s], got: [%s]", sid, loginResp.Sid)
+	if loginResp.Sid != user.Sid {
+		return fmt.Errorf("session ID changed after rating change, expected: [%s], got: [%s]", user.Sid, loginResp.Sid)
 	}
 
 	return nil
