@@ -31,7 +31,7 @@ func (user *Credentials) Login() tea.Cmd {
 	return Wrap(user)
 }
 
-func (user *Credentials) logout() error {
+func (user *Credentials) Logout() error {
 	resp, err := user.Get(inkbunnyURL("logout", url.Values{"sid": {user.Sid}}))
 	if err != nil {
 		return err
@@ -51,5 +51,6 @@ func (user *Credentials) logout() error {
 		return fmt.Errorf("logout failed, response: %s", logoutResp.Logout)
 	}
 
+	*user = Credentials{}
 	return nil
 }

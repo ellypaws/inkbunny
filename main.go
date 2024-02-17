@@ -7,6 +7,7 @@ import (
 	"inkbunny/gui"
 	"log"
 	"strings"
+	"time"
 )
 
 type model struct {
@@ -26,7 +27,14 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "ctrl+c":
-			return m, tea.Quit
+			if m.user.Sid != "" {
+				if err := m.user.Logout(); err != nil {
+					return m, api.Wrap(err)
+				}
+				log.Println("Logged out")
+				time.Sleep(1 * time.Second)
+			}
+			return initialModel(), initialModel().Init()
 		}
 		m.l, cmd = m.l.Update(msg)
 		return m, cmd
