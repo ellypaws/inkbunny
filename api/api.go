@@ -3,7 +3,6 @@ package api
 import (
 	"encoding/json"
 	"fmt"
-	tea "github.com/charmbracelet/bubbletea"
 	"io"
 	"net/http"
 	"net/url"
@@ -59,13 +58,6 @@ func (user Credentials) Post(url *url.URL, contentType string, body io.Reader) (
 
 func (user Credentials) PostForm(url *url.URL, values url.Values) (*http.Response, error) {
 	return user.Post(url, "application/x-www-form-urlencoded", strings.NewReader(values.Encode()))
-}
-
-// Wrap casts a message into a tea.Cmd
-func Wrap(msg any) tea.Cmd {
-	return func() tea.Msg {
-		return msg
-	}
 }
 
 // GetWatchlist gets the watchlist of a logged-in user
