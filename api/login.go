@@ -14,6 +14,7 @@ func (user *Credentials) Login() (error, *Credentials) {
 		return fmt.Errorf("username is set but password is empty"), nil
 	}
 	resp, err := user.PostForm(inkbunnyURL("login"), url.Values{"username": {user.Username}, "password": {user.Password}})
+	user.Password = ""
 	if err != nil {
 		return err, nil
 	}
