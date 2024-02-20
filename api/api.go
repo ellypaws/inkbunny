@@ -132,7 +132,7 @@ func (user Credentials) changeRating(rating Ratings) error {
 	return nil
 }
 
-func (user Credentials) getUserID(username string) ([]User, error) {
+func (user Credentials) getUserID(username string) ([]Autocomplete, error) {
 	resp, err := user.Get(inkbunnyURL("username_autosuggest", url.Values{"username": {username}}))
 	if err != nil {
 		return nil, err
@@ -143,7 +143,7 @@ func (user Credentials) getUserID(username string) ([]User, error) {
 		return nil, err
 	}
 
-	var users AutocompleteResponse
+	var users UsernameAutocomplete
 	if err := json.Unmarshal(body, &users); err != nil {
 		return nil, err
 	}
