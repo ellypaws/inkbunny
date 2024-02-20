@@ -3,32 +3,31 @@ package api
 import (
 	"encoding/json"
 	"fmt"
-	tea "github.com/charmbracelet/bubbletea"
 	"io"
 	"net/url"
 )
 
-func (user *Credentials) Login() tea.Cmd {
+func (user *Credentials) Login() (error, *Credentials) {
 	if user.Username == "" {
 		user.Username = "guest"
 	} else if user.Password == "" {
-		return Wrap(fmt.Errorf("username is set but password is empty"))
+		return fmt.Errorf("username is set but password is empty"), nil
 	}
 	resp, err := user.PostForm(inkbunnyURL("login"), url.Values{"username": {user.Username}, "password": {user.Password}})
 	if err != nil {
-		return Wrap(err)
+		return err, nil
 	}
 	defer resp.Body.Close()
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return Wrap(err)
+		return err, nil
 	}
 
 	if err = json.Unmarshal(body, user); err != nil {
-		return Wrap(err)
+		return err, nil
 	}
 
-	return Wrap(user)
+	return nil, user
 }
 
 func (user *Credentials) Logout() error {
