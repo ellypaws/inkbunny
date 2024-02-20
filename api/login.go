@@ -7,30 +7,36 @@ import (
 	"net/url"
 )
 
-func (user *Credentials) Login() (error, *Credentials) {
+func (user *Credentials) Login() (*Credentials, error) {
 	if user.Username == "" {
 		user.Username = "guest"
 	} else if user.Password == "" {
-		return fmt.Errorf("username is set but password is empty"), nil
+		return nil, fmt.Errorf("username is set but password is empty")
 	}
 	resp, err := user.PostForm(inkbunnyURL("login"), url.Values{"username": {user.Username}, "password": {user.Password}})
 	user.Password = ""
 	if err != nil {
-		return err, nil
+		return nil, err
 	}
 	defer resp.Body.Close()
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return err, nil
+		return nil, err
 	}
 
 	if err = json.Unmarshal(body, user); err != nil {
-		return err, nil
+		return nil, err
 	}
 
 	user.Ratings.parseMask()
 
-	return nil, user
+	return user, nil
+}
+
+var ErrNotLoggedIn = fmt.Errorf("not logged in")
+
+func (user Credentials) LoggedIn() bool {
+	return user.Sid != ""
 }
 
 func (ratings *Ratings) parseMask() {
