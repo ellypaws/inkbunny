@@ -28,7 +28,32 @@ func (user *Credentials) Login() (error, *Credentials) {
 		return err, nil
 	}
 
+	user.Ratings.parseMask()
+
 	return nil, user
+}
+
+func (ratings *Ratings) parseMask() {
+	// RatingsMask - Binary string representation of the users Allowed Ratings choice. The bits are in this order left-to-right:
+	// Eg: A string 11100 means only items rated General, Nudity and Violence are allowed, but Sex and Strong Violence are blocked.
+	// A string 11111 means items of any rating would be shown. Only 'left-most significant bits' are returned. So 11010 and 1101 are the same, and 10000 and 1 are the same.
+	set := func(r int32) bool {
+		return r == '1'
+	}
+	for i, rating := range ratings.RatingsMask {
+		switch i {
+		case 0:
+			ratings.General = set(rating)
+		case 1:
+			ratings.Nudity = set(rating)
+		case 2:
+			ratings.MildViolence = set(rating)
+		case 3:
+			ratings.Sexual = set(rating)
+		case 4:
+			ratings.StrongViolence = set(rating)
+		}
+	}
 }
 
 func (user *Credentials) Logout() error {
