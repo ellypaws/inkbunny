@@ -96,14 +96,6 @@ func findMutual(a, b []string) []string {
 	return mutual
 }
 
-type Rating struct {
-	General        bool `json:"1,omitempty"` // Show images with Rating tag: "General - Suitable for all ages".
-	Nudity         bool `json:"2,omitempty"` // Show images with Rating tag: "Nudity - Nonsexual nudity exposing breasts or genitals (must not show arousal)".
-	MildViolence   bool `json:"3,omitempty"` // Show images with Rating tag: "Violence - Mild violence".
-	Sexual         bool `json:"4,omitempty"` // Show images with Rating tag: "Sexual Themes - Erotic imagery, sexual activity or arousal".
-	StrongViolence bool `json:"5,omitempty"` // Show images with Rating tag: "Strong Violence - Strong violence, blood, serious injury or death".
-}
-
 func optIn(b bool) string {
 	if b {
 		return "yes"
@@ -111,7 +103,7 @@ func optIn(b bool) string {
 	return "no"
 }
 
-func (user Credentials) changeRating(rating Rating) error {
+func (user Credentials) changeRating(rating Ratings) error {
 	resp, err := user.PostForm(inkbunnyURL("userrating"), url.Values{
 		"sid":    {user.Sid},
 		"tag[2]": {optIn(rating.Nudity)},
