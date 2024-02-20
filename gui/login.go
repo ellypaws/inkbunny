@@ -6,6 +6,7 @@ package gui
 import (
 	"fmt"
 	"inkbunny/api"
+	"inkbunny/utils"
 	"strings"
 
 	"github.com/charmbracelet/bubbles/cursor"
@@ -104,9 +105,12 @@ func (m loginForm) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.user.Username = m.inputs[0].Value()
 				m.user.Password = m.inputs[1].Value()
 
-				response := m.user.Login()
+				err, response := m.user.Login()
+				if err != nil {
+					return m, utils.Wrap(err)
+				}
 
-				return m, response
+				return m, utils.Wrap(response)
 			}
 
 			// Cycle indexes
