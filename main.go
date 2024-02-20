@@ -5,6 +5,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"inkbunny/api"
 	"inkbunny/gui"
+	"inkbunny/utils"
 	"log"
 	"strings"
 	"time"
@@ -29,7 +30,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "ctrl+c":
 			if m.user.Sid != "" {
 				if err := m.user.Logout(); err != nil {
-					return m, api.Wrap(err)
+					return m, utils.Wrap(err)
 				}
 				log.Println("Logged out")
 				time.Sleep(1 * time.Second)
@@ -44,7 +45,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, tea.Quit
 		}
 		m.user = *msg
-		return m, api.Wrap(GetWatchlist{})
+		return m, utils.Wrap(GetWatchlist{})
 	case GetWatchlist:
 		watchlist, err := api.GetWatchlist(m.user)
 		if err != nil {
