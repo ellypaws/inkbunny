@@ -51,7 +51,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			log.Println("Error getting watchlist:", err)
 		}
 
-		m.p = m.p.(gui.Pager).SetContent(strings.Join(watchlist, "\n"))
+		m.p = m.p.(Pager).SetContent(strings.Join(watchlist, "\n"))
 	}
 	m.p, cmd = m.p.Update(msg)
 	return m, nil
@@ -71,8 +71,8 @@ func (m model) View() string {
 
 func InitialModel() model {
 	return model{
-		l: gui.initLoginForm(&api.Credentials{}),
-		p: gui.NewPager("Fetching watchlist..."),
+		l: initLoginForm(&api.Credentials{}),
+		p: NewPager("Fetching watchlist..."),
 	}
 }
 
