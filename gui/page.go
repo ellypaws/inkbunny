@@ -38,6 +38,17 @@ type Pager struct {
 	content  string
 	ready    bool
 	viewport viewport.Model
+	active   bool
+}
+
+func (m Pager) Focus() tea.Model {
+	m.active = true
+	return m
+}
+
+func (m Pager) Blur() tea.Model {
+	m.active = false
+	return m
 }
 
 func (m Pager) Init() tea.Cmd {
@@ -45,6 +56,9 @@ func (m Pager) Init() tea.Cmd {
 }
 
 func (m Pager) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	if !m.active {
+		return m, nil
+	}
 	var (
 		cmd  tea.Cmd
 		cmds []tea.Cmd
@@ -100,6 +114,9 @@ func (m Pager) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m Pager) View() string {
+	if !m.active {
+		return ""
+	}
 	if !m.ready {
 		return "\n  Initializing..."
 	}
@@ -125,7 +142,7 @@ func max(a, b int) int {
 	return b
 }
 
-func NewPager(content string) Pager {
+func newPager(content string) Pager {
 	return Pager{content: content}
 }
 

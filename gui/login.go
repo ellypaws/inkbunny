@@ -27,6 +27,18 @@ var (
 	blurredButton = fmt.Sprintf("[ %s ]", blurredStyle.Render("Submit"))
 )
 
+func (m loginForm) Focus() tea.Model {
+	m.submitted = false
+	m.inputs[m.focusIndex].Focus()
+	return m
+}
+
+func (m loginForm) Blur() tea.Model {
+	m.submitted = true
+	m.inputs[m.focusIndex].Blur()
+	return m
+}
+
 type loginForm struct {
 	user       *api.Credentials
 	focusIndex int

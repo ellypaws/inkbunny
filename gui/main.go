@@ -2,6 +2,7 @@ package gui
 
 import (
 	"fmt"
+	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 	"inkbunny/api"
 	"inkbunny/utils"
@@ -14,12 +15,12 @@ type model struct {
 	user api.Credentials
 	l    tea.Model
 	p    tea.Model
+	menu tea.Model
 }
 
 func (m model) Init() tea.Cmd { return nil }
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	var cmd tea.Cmd
 	switch msg := msg.(type) {
 	case error:
 		log.Println("Error:", msg)
@@ -36,8 +37,6 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 			return InitialModel(), InitialModel().Init()
 		}
-		m.l, cmd = m.l.Update(msg)
-		return m, cmd
 	case *api.Credentials:
 		if msg == nil {
 			log.Println("Credentials message is nil")
@@ -52,9 +51,37 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 
 		m.p = m.p.(Pager).SetContent(strings.Join(watchlist, "\n"))
+		m = m.chooseFocus(m.p.(Focusable), &m.p)
 	}
+	m, cmds := m.propagate(msg)
+	return m, tea.Batch(cmds...)
+}
+
+type Focusable interface {
+	tea.Model
+	Focus() tea.Model
+	Blur() tea.Model
+}
+
+func (m model) chooseFocus(f Focusable, model *tea.Model) model {
+	m.l = m.l.(loginForm).Blur()
+	m.p = m.p.(Pager).Blur()
+	m.menu = m.menu.(listModel).Blur()
+
+	*model = f.Focus()
+	return m
+}
+
+func (m model) propagate(msg tea.Msg) (model, []tea.Cmd) {
+	var cmds []tea.Cmd
+	var cmd tea.Cmd
+	m.l, cmd = m.l.Update(msg)
+	cmds = append(cmds, cmd)
 	m.p, cmd = m.p.Update(msg)
-	return m, nil
+	cmds = append(cmds, cmd)
+	m.menu, cmd = m.menu.Update(msg)
+	cmds = append(cmds, cmd)
+	return m, cmds
 }
 
 func (m model) View() string {
@@ -64,15 +91,22 @@ func (m model) View() string {
 	switch {
 	case m.user.Sid != "":
 		view.WriteString(fmt.Sprintf("\n\nLogged in as [%s] with session ID [%s]\n", m.user.Username, m.user.Sid))
-		view.WriteString(m.p.View())
+		view.WriteString(m.menu.View())
 	}
 	return view.String()
 }
 
 func InitialModel() model {
+	items := []list.Item{
+		item{title: "Watchlist", desc: "View your watchlist"},
+		item{title: "Logout", desc: "Log out of your account"},
+		item{title: "Submissions", desc: "View your submissions"},
+		item{title: "Search", desc: "Search for submissions"},
+	}
 	return model{
-		l: initLoginForm(&api.Credentials{}),
-		p: NewPager("Fetching watchlist..."),
+		l:    initLoginForm(&api.Credentials{}),
+		p:    newPager("Fetching watchlist..."),
+		menu: initialMenu(items),
 	}
 }
 
