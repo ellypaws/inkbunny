@@ -15,7 +15,7 @@ type SearchRequest struct {
 	KeywordsList       string `json:"keywords_list,omitempty"`
 	NoSubmissions      string `json:"no_submissions,omitempty"`
 	GetRID             string `json:"get_rid,omitempty"`
-	FieldJoinType      string `json:"field_join_type,omitempty"`
+	FieldJoinType      string `json:"field_join_type,omitempty"` // "or" or "and"
 	Text               string `json:"text,omitempty"`
 	StringJoinType     string `json:"string_join_type,omitempty"`
 	Keywords           string `json:"keywords,omitempty"`
@@ -30,7 +30,7 @@ type SearchRequest struct {
 	Type               string `json:"type,omitempty"`
 	Sales              string `json:"sales,omitempty"`
 	PoolID             string `json:"pool_id,omitempty"`
-	OrderBy            string `json:"orderby,omitempty"`
+	OrderBy            string `json:"orderby,omitempty"` // Values: create_datetime, unread_datetime, views, total_print_sales, total_digital_sales, total_sales, username, fav_datetime, fav_stars, pool_order. Default: create_datetime.
 	DaysLimit          int    `json:"dayslimit,omitempty"`
 	Random             string `json:"random,omitempty"`
 	Scraps             string `json:"scraps,omitempty"`
@@ -52,7 +52,13 @@ type SearchResponse struct {
 		KeywordName      string `json:"keyword_name"`
 		SubmissionsCount int    `json:"submissions_count"`
 	} `json:"keyword_list,omitempty"`
-	Submissions []Submission `json:"submissions,omitempty"`
+	Submissions []struct {
+		SubmissionBasic
+		UnreadDateSystem string `json:"unread_datetime_system"`
+		UnreadDateUser   string `json:"unread_datetime"`
+		Updated          bool   `json:"updated"`
+		Stars            string `json:"stars"`
+	} `json:"submissions,omitempty"`
 }
 
 func (user Credentials) SearchSubmissions(req SearchRequest) (SearchResponse, error) {
