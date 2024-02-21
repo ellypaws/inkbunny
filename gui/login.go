@@ -35,7 +35,7 @@ type loginForm struct {
 	cursorMode cursor.Mode
 }
 
-func InitialModel(user *api.Credentials) loginForm {
+func initLoginForm(user *api.Credentials) loginForm {
 	m := loginForm{
 		user:   user,
 		inputs: make([]textinput.Model, 2),
