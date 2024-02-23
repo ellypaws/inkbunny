@@ -35,7 +35,9 @@ func (m loginForm) Focus() tea.Model {
 
 func (m loginForm) Blur() tea.Model {
 	m.submitted = true
-	m.inputs[m.focusIndex].Blur()
+	for i := range m.inputs {
+		m.inputs[i].Blur()
+	}
 	return m
 }
 
