@@ -18,7 +18,12 @@ type model struct {
 	menu tea.Model
 }
 
-func (m model) Init() tea.Cmd { return nil }
+func (m model) Init() tea.Cmd {
+	if m.user.Sid != "" {
+		return utils.Wrap(ShowMenu{})
+	}
+	return nil
+}
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
@@ -35,7 +40,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				log.Println("Logged out")
 				time.Sleep(1 * time.Second)
 			}
-			return InitialModel(), InitialModel().Init()
+			return InitialModel(""), nil
 		}
 	case *api.Credentials:
 		if msg == nil {
@@ -96,7 +101,8 @@ func (m model) View() string {
 	return view.String()
 }
 
-func InitialModel() model {
+func InitialModel(sid string) model {
+	user := api.Credentials{Sid: sid}
 	items := []list.Item{
 		item{title: "Watchlist", desc: "View your watchlist"},
 		item{title: "Logout", desc: "Log out of your account"},
@@ -104,7 +110,8 @@ func InitialModel() model {
 		item{title: "Search", desc: "Search for submissions"},
 	}
 	return model{
-		l:    initLoginForm(&api.Credentials{}),
+		user: user,
+		l:    initLoginForm(&user),
 		p:    newPager("Fetching watchlist..."),
 		menu: initialMenu(items),
 	}

@@ -55,6 +55,10 @@ func initLoginForm(user *api.Credentials) loginForm {
 		inputs: make([]textinput.Model, 2),
 	}
 
+	if user.Sid != "" {
+		m.submitted = true
+	}
+
 	var t textinput.Model
 	for i := range m.inputs {
 		t = textinput.New()
@@ -65,7 +69,10 @@ func initLoginForm(user *api.Credentials) loginForm {
 		case 0:
 			t.Placeholder = "Username"
 			t.CharLimit = 64
-			t.Focus()
+
+			if m.user.Sid == "" && !m.submitted {
+				t.Focus()
+			}
 			t.PromptStyle = focusedStyle
 			t.TextStyle = focusedStyle
 		case 1:
