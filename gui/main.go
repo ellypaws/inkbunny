@@ -56,7 +56,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 
 		m.p = m.p.(Pager).SetContent(strings.Join(watchlist, "\n"))
-		m = m.chooseFocus(m.p.(Focusable), &m.p)
+		m.chooseFocus(&m.p)
 	}
 	m, cmds := m.propagate(msg)
 	return m, tea.Batch(cmds...)
@@ -68,13 +68,12 @@ type Focusable interface {
 	Blur() tea.Model
 }
 
-func (m model) chooseFocus(f Focusable, model *tea.Model) model {
+func (m *model) chooseFocus(model *tea.Model) {
 	m.l = m.l.(loginForm).Blur()
 	m.p = m.p.(Pager).Blur()
 	m.menu = m.menu.(listModel).Blur()
 
-	*model = f.Focus()
-	return m
+	*model = (*model).(Focusable).Focus()
 }
 
 func (m model) propagate(msg tea.Msg) (model, []tea.Cmd) {
