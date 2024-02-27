@@ -72,6 +72,10 @@ func GetWatchlist(user Credentials) ([]string, error) {
 		return nil, err
 	}
 
+	if err := CheckError(body); err != nil {
+		return nil, fmt.Errorf("error getting watchlist: %w", err)
+	}
+
 	var watchResp WatchlistResponse
 	if err := json.Unmarshal(body, &watchResp); err != nil {
 		return nil, err
