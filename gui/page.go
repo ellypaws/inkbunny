@@ -56,8 +56,12 @@ func (m Pager) Init() tea.Cmd {
 }
 
 func (m Pager) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	if !m.active {
-		return m, nil
+	switch msg.(type) {
+	case tea.WindowSizeMsg:
+	default:
+		if !m.active {
+			return m, nil
+		}
 	}
 	var (
 		cmd  tea.Cmd

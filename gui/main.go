@@ -48,11 +48,11 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, tea.Quit
 		}
 		m.user = *msg
-		return m, utils.Wrap(GetWatchlist{})
+		return m, utils.Wrap(ShowMenu{})
 	case GetWatchlist:
 		watchlist, err := api.GetWatchlist(m.user)
 		if err != nil {
-			log.Println("Error getting watchlist:", err)
+			return m, utils.Wrap(err)
 		}
 
 		m.p = m.p.(Pager).SetContent(strings.Join(watchlist, "\n"))
