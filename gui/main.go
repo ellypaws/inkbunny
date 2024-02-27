@@ -59,6 +59,26 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.chooseFocus(&m.p)
 	case ShowMenu:
 		m.chooseFocus(&m.menu)
+	case item:
+		switch msg.Title() {
+		case Watchlist:
+			m.p = m.p.(Pager).SetContent("Fetching watchlist...")
+			m.chooseFocus(&m.p)
+			return m, utils.Wrap(GetWatchlist{})
+		case Logout:
+			if err := m.user.Logout(); err != nil {
+				return m, utils.Wrap(err)
+			}
+			log.Println("Logged out")
+			time.Sleep(1 * time.Second)
+			return InitialModel(""), nil
+		case Submissions:
+			m.p = m.p.(Pager).SetContent("Fetching submissions...")
+			m.chooseFocus(&m.p)
+		case Search:
+			m.p = m.p.(Pager).SetContent("Fetching search...")
+			m.chooseFocus(&m.p)
+		}
 	}
 	m, cmds := m.propagate(msg)
 	return m, tea.Batch(cmds...)
@@ -102,13 +122,20 @@ func (m model) View() string {
 	return view.String()
 }
 
+const (
+	Watchlist   = "Watchlist"
+	Logout      = "Logout"
+	Submissions = "Submissions"
+	Search      = "Search"
+)
+
 func InitialModel(sid string) model {
 	user := api.Credentials{Sid: sid}
 	items := []list.Item{
-		item{title: "Watchlist", desc: "View your watchlist"},
-		item{title: "Logout", desc: "Log out of your account"},
-		item{title: "Submissions", desc: "View your submissions"},
-		item{title: "Search", desc: "Search for submissions"},
+		item{title: Watchlist, desc: "View your watchlist"},
+		item{title: Logout, desc: "Log out of your account"},
+		item{title: Submissions, desc: "View your submissions"},
+		item{title: Search, desc: "Search for submissions"},
 	}
 	return model{
 		user: user,

@@ -4,6 +4,7 @@ import (
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"inkbunny/utils"
 )
 
 var docStyle = lipgloss.NewStyle().Margin(1, 2)
@@ -35,6 +36,10 @@ func (m listModel) Init() tea.Cmd {
 	return nil
 }
 
+func (m listModel) Index() int {
+	return m.list.Index()
+}
+
 func (m listModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	if !m.active {
 		return m, nil
@@ -43,6 +48,9 @@ func (m listModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		if msg.String() == "ctrl+c" {
 			return m, tea.Quit
+		}
+		if m.active && msg.String() == "enter" {
+			return m, utils.Wrap(m.list.SelectedItem().(item))
 		}
 	case tea.WindowSizeMsg:
 		h, v := docStyle.GetFrameSize()
