@@ -2,7 +2,9 @@ package api
 
 import (
 	"encoding/json"
+	"fmt"
 	"inkbunny/utils"
+	"io"
 )
 
 type SearchRequest struct {
@@ -75,9 +77,17 @@ func (user Credentials) SearchSubmissions(req SearchRequest) (SearchResponse, er
 		return SearchResponse{}, err
 	}
 	defer resp.Body.Close()
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return SearchResponse{}, err
+	}
+
+	if err := CheckError(body); err != nil {
+		return SearchResponse{}, fmt.Errorf("error searching submissions: %w", err)
+	}
 
 	var searchResp SearchResponse
-	if err := json.NewDecoder(resp.Body).Decode(&searchResp); err != nil {
+	if err := json.Unmarshal(body, &searchResp); err != nil {
 		return SearchResponse{}, err
 	}
 
