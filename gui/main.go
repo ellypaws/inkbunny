@@ -113,12 +113,15 @@ func (m model) propagate(msg tea.Msg) (model, []tea.Cmd) {
 func (m model) View() string {
 	view := strings.Builder{}
 	view.WriteString("Inkbunny CLI\n\n")
-	view.WriteString(m.l.View())
-	switch {
-	case m.user.Sid != "":
+
+	if m.user.Sid == "" {
+		view.WriteString(m.l.View())
+	} else {
 		view.WriteString(fmt.Sprintf("\n\nLogged in as [%s] with session ID [%s]\n", m.user.Username, m.user.Sid))
 		view.WriteString(m.menu.View())
+		view.WriteString(m.p.View())
 	}
+
 	return view.String()
 }
 
