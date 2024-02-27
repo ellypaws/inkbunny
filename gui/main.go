@@ -57,6 +57,8 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		m.p = m.p.(Pager).SetContent(strings.Join(watchlist, "\n"))
 		m.chooseFocus(&m.p)
+	case ShowMenu:
+		m.chooseFocus(&m.menu)
 	}
 	m, cmds := m.propagate(msg)
 	return m, tea.Batch(cmds...)
@@ -117,3 +119,4 @@ func InitialModel(sid string) model {
 }
 
 type GetWatchlist struct{}
+type ShowMenu struct{}
