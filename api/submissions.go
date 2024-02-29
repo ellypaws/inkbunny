@@ -196,7 +196,7 @@ const (
 	SubmissionTypePhotography
 )
 
-func (user *Credentials) SubmissionDetails(req submissionDetailsRequest) (SubmissionDetailsResponse, error) {
+func (user Credentials) SubmissionDetails(req submissionDetailsRequest) (SubmissionDetailsResponse, error) {
 	if !user.LoggedIn() {
 		return SubmissionDetailsResponse{}, ErrNotLoggedIn
 	}
