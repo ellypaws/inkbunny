@@ -46,6 +46,14 @@ type Autocomplete struct {
 	SearchTerm string `json:"searchterm"`
 }
 
+func (u UsernameAutocomplete) String(i int) string {
+	return u.Results[i].Value
+}
+
+func (u UsernameAutocomplete) Len() int {
+	return len(u.Results)
+}
+
 type KeywordAutocomplete struct {
 	Results []struct {
 		Autocomplete
