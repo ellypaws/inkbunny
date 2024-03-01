@@ -50,7 +50,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.user = *msg
 		return m, utils.Wrap(ShowMenu{})
 	case GetWatchlist:
-		watchlist, err := api.GetWatchlist(m.user)
+		watchlist, err := m.user.GetWatchlist()
 		if err != nil {
 			return m, utils.Wrap(err)
 		}

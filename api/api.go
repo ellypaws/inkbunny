@@ -72,7 +72,7 @@ func (user Credentials) PostForm(url *url.URL, values url.Values) (*http.Respons
 }
 
 // GetWatchlist gets the watchlist of a logged-in user
-func GetWatchlist(user Credentials) ([]string, error) {
+func (user Credentials) GetWatchlist() ([]string, error) {
 	resp, err := user.Get(apiURL("watchlist", url.Values{"sid": {user.Sid}}))
 	if err != nil {
 		return nil, err
