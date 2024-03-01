@@ -8,7 +8,7 @@ import (
 )
 
 func (user *Credentials) Login() (*Credentials, error) {
-	if user.Username == "" {
+	if user.Username == "" || user.Username == "guest" {
 		user.Username = "guest"
 	} else if user.Password == "" {
 		return nil, fmt.Errorf("username is set but password is empty")
