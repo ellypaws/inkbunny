@@ -13,7 +13,7 @@ func (user *Credentials) Login() (*Credentials, error) {
 	} else if user.Password == "" {
 		return nil, fmt.Errorf("username is set but password is empty")
 	}
-	resp, err := user.PostForm(inkbunnyURL("login"), url.Values{"username": {user.Username}, "password": {user.Password}})
+	resp, err := user.PostForm(apiURL("login"), url.Values{"username": {user.Username}, "password": {user.Password}})
 	user.Password = ""
 	if err != nil {
 		return nil, err
@@ -63,7 +63,7 @@ func (ratings *Ratings) parseMask() {
 }
 
 func (user *Credentials) Logout() error {
-	resp, err := user.Get(inkbunnyURL("logout", url.Values{"sid": {user.Sid}}))
+	resp, err := user.Get(apiURL("logout", url.Values{"sid": {user.Sid}}))
 	if err != nil {
 		return err
 	}

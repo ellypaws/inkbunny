@@ -71,7 +71,7 @@ func (user Credentials) SearchSubmissions(req SearchRequest) (SearchResponse, er
 		req.SID = user.Sid
 	}
 
-	resp, err := user.Get(inkbunnyURL("search", utils.StructToUrlValues(req)))
+	resp, err := user.Get(apiURL("search", utils.StructToUrlValues(req)))
 
 	if err != nil {
 		return SearchResponse{}, err

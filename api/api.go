@@ -10,18 +10,27 @@ import (
 	"strings"
 )
 
-// inkbunnyURL is a helper function to generate Inkbunny API URLs
+// inkbunnyURL is a helper function to generate Inkbunny URLs with a given path and optional query parameters
 func inkbunnyURL(path string, values ...url.Values) *url.URL {
 	request := &url.URL{
 		Scheme: "https",
 		Host:   "inkbunny.net",
-		Path:   fmt.Sprintf("api_%v.php", path),
+		Path:   path,
 	}
 	for i := range values {
 		request.RawQuery = values[i].Encode()
 	}
 
 	return request
+}
+
+// apiURL is a helper function to generate Inkbunny API URLs.
+// path is the name of the API endpoint, without the "api_" prefix or ".php" suffix
+// example: "login" for "https://inkbunny.net/api_login.php"
+//
+//	url := apiURL("login", url.Values{"username": {"guest"}, "password": {""}})
+func apiURL(path string, values ...url.Values) *url.URL {
+	return inkbunnyURL(fmt.Sprintf("api_%v.php", path), values...)
 }
 
 func (user Credentials) Request(method string, url string, body io.Reader) (*http.Request, error) {
@@ -62,7 +71,7 @@ func (user Credentials) PostForm(url *url.URL, values url.Values) (*http.Respons
 
 // GetWatchlist gets the watchlist of a logged-in user
 func GetWatchlist(user Credentials) ([]string, error) {
-	resp, err := user.Get(inkbunnyURL("watchlist", url.Values{"sid": {user.Sid}}))
+	resp, err := user.Get(apiURL("watchlist", url.Values{"sid": {user.Sid}}))
 	if err != nil {
 		return nil, err
 	}
@@ -108,7 +117,7 @@ func optIn(b bool) string {
 }
 
 func (user Credentials) changeRating(rating Ratings) error {
-	resp, err := user.PostForm(inkbunnyURL("userrating"), url.Values{
+	resp, err := user.PostForm(apiURL("userrating"), url.Values{
 		"sid":    {user.Sid},
 		"tag[2]": {optIn(rating.Nudity)},
 		"tag[3]": {optIn(rating.MildViolence)},
@@ -136,21 +145,21 @@ func (user Credentials) changeRating(rating Ratings) error {
 	return nil
 }
 
-func (user Credentials) getUserID(username string) ([]Autocomplete, error) {
-	resp, err := user.Get(inkbunnyURL("username_autosuggest", url.Values{"username": {username}}))
+func GetUserID(username string) (UsernameAutocomplete, error) {
+	resp, err := Credentials{}.Get(apiURL("username_autosuggest", url.Values{"username": {username}}))
 	if err != nil {
-		return nil, err
+		return UsernameAutocomplete{}, err
 	}
 	defer resp.Body.Close()
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return nil, err
+		return UsernameAutocomplete{}, err
 	}
 
 	var users UsernameAutocomplete
 	if err := json.Unmarshal(body, &users); err != nil {
-		return nil, err
+		return UsernameAutocomplete{}, err
 	}
 
-	return users.Results, nil
+	return users, nil
 }

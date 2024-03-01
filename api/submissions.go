@@ -210,7 +210,7 @@ func (user Credentials) SubmissionDetails(req submissionDetailsRequest) (Submiss
 		urlValues.Set("submission_ids", strings.Join(req.SubmissionIDSlice, ","))
 	}
 
-	resp, err := user.Get(inkbunnyURL("submission", urlValues))
+	resp, err := user.Get(apiURL("submission", urlValues))
 	if err != nil {
 		return SubmissionDetailsResponse{}, err
 	}
