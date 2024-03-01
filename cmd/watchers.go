@@ -10,6 +10,43 @@ import (
 	"time"
 )
 
+func main() {
+	u, err := login()
+	if err != nil {
+		log.Fatalf("error logging in: %v", err)
+	}
+
+	log.Printf("logged in as %s, session id: %s", u.Credentials.Username, u.Credentials.Sid)
+
+	watchlistStrings := u.getWatchlist()
+
+	log.Printf("watchers for %s: %v\n", u.Credentials.Username, watchlistStrings)
+
+	u.Watchers = updateFollowers(u, watchlistStrings)
+	u.store()
+
+	var logout string
+	fmt.Print("Logout? (y/[n]): ")
+	fmt.Scanln(&logout)
+	if logout == "y" {
+		u.logout()
+	}
+}
+
+func login() (user, error) {
+	var u user = read()
+
+	var err error
+	if u.Credentials == nil || u.Credentials.Sid == "" {
+		u.Credentials, err = loginPrompt().Login()
+		if err != nil {
+			//log.Fatalf("error logging in: %v", err)
+		}
+		u.store()
+	}
+	return u, err
+}
+
 func loginPrompt() *api.Credentials {
 	var user api.Credentials
 	fmt.Print("Enter username: ")
@@ -24,22 +61,66 @@ func loginPrompt() *api.Credentials {
 	return &user
 }
 
-func main() {
-	var u user = read()
+func (u user) logout() {
+	err := u.Credentials.Logout()
+	if err != nil {
+		log.Fatalf("error logging out: %v", err)
+	}
+	u.store()
+}
 
-	var err error
-	if u.Credentials == nil || u.Credentials.Sid == "" {
-		u.Credentials, err = loginPrompt().Login()
-		if err != nil {
-			log.Fatalf("error logging in: %v", err)
-		}
-		u.store()
+func updateFollowers(u user, watchlistStrings []string) map[string][]state {
+	currentTime := time.Now().UTC()
+	newWatchlist, newFollows := u.newFollowers(watchlistStrings, currentTime)
+	if len(newFollows) > 0 {
+		log.Printf("new follows (%d): %v", len(newFollows), newFollows)
 	}
 
-	log.Printf("logged in as %s, session id: %s", u.Credentials.Username, u.Credentials.Sid)
+	// Check for unfollows
+	unfollows := u.checkMissing(newWatchlist, currentTime)
+	if len(unfollows) > 0 {
+		log.Printf("unfollows (%d): %v", len(unfollows), unfollows)
+	}
+	return newWatchlist
+}
 
+// newFollowers checks for new followers by checking if the watchlistStrings doesn't exist in user.Watchers or if the last state is unfollowing.
+// If a username is new or previously unfollowed, it's added to the new watchlist with the last state set to following.
+// Otherwise, the existing states are copied to the new watchlist.
+func (u user) newFollowers(watchlistStrings []string, currentTime time.Time) (map[string][]state, []string) {
+	newWatchlist := make(map[string][]state)
+	var newFollows []string
+	// Process new follows
+	for _, watcher := range watchlistStrings {
+		states, exists := u.Watchers[watcher]
+		if !exists || !states[len(states)-1].Following {
+			newWatchlist[watcher] = append(states, state{Date: currentTime, Following: true})
+			newFollows = append(newFollows, watcher)
+		} else {
+			newWatchlist[watcher] = states // Copy existing states if no change
+		}
+	}
+	return newWatchlist, newFollows
+}
+
+// checkMissing checks for unfollowing by looking at the missing usernames the new watchlist doesn't have that user.Watchers has.
+// If a username is missing from the new watchlist, it's added to the new watchlist with the last state set to unfollowing.
+func (u user) checkMissing(newWatchlist map[string][]state, currentTime time.Time) []string {
+	var unfollows []string
+	for username, states := range u.Watchers {
+		if _, found := newWatchlist[username]; !found && states[len(states)-1].Following {
+			// Last state was following, now it's not in the new watchers list -> unfollow
+			newWatchlist[username] = append(states, state{Date: currentTime, Following: false})
+			unfollows = append(unfollows, username)
+		}
+	}
+	return unfollows
+}
+
+func (u user) getWatchlist() []string {
 	var username string
 	var watchlistStrings []string
+	var err error
 	fmt.Print("Enter username to get watchers for: ")
 	fmt.Scanln(&username)
 	if username == "" || username == u.Credentials.Username || username == "self" {
@@ -48,65 +129,10 @@ func main() {
 		watchlistStrings, err = u.Credentials.GetWatchers(username)
 	}
 	if err != nil {
-		err := u.Credentials.Logout()
-		if err != nil {
-			log.Fatalf("error logging out: %v", err)
-		}
-		u.store()
-		log.Fatalf("error getting watchers: %v", err)
+		u.logout()
 	}
 
-	log.Printf("watchers for %s: %v\n", username, watchlistStrings)
-
-	currentTime := time.Now().UTC()
-	newWatchersList := make(map[string][]state)
-
-	var newFollows []string
-	// Process new follows
-	for _, watcher := range watchlistStrings {
-		states, exists := u.Watchers[watcher]
-		if !exists || !states[len(states)-1].Following {
-			newWatchersList[watcher] = append(states, state{Date: currentTime, Following: true})
-			newFollows = append(newFollows, watcher)
-		} else {
-			newWatchersList[watcher] = states // Copy existing states if no change
-		}
-	}
-
-	if len(newFollows) > 0 {
-		log.Printf("new follows: %v", newFollows)
-	}
-
-	// Check for unfollows
-	var unfollows []string
-	for watcher, states := range u.Watchers {
-		if _, found := newWatchersList[watcher]; !found && states[len(states)-1].Following {
-			// Last state was following, now it's not in the new watchers list -> unfollow
-			newWatchersList[watcher] = append(states, state{Date: currentTime, Following: false})
-			unfollows = append(unfollows, watcher)
-		} else if !states[len(states)-1].Following {
-			// If the last state was not following, just copy over the states
-			newWatchersList[watcher] = states
-		}
-	}
-
-	if len(unfollows) > 0 {
-		log.Printf("unfollows: %v", unfollows)
-	}
-
-	u.Watchers = newWatchersList
-	u.store()
-
-	var logout string
-	fmt.Print("Logout? (y/[n]): ")
-	fmt.Scanln(&logout)
-	if logout == "y" {
-		err = u.Credentials.Logout()
-		if err != nil {
-			log.Fatalf("error logging out: %v", err)
-		}
-		u.store()
-	}
+	return watchlistStrings
 }
 
 type user struct {
@@ -135,7 +161,7 @@ func read() user {
 	return u
 }
 
-func (user user) store() {
+func (u user) store() {
 	tempFile, err := os.CreateTemp(".", "temp")
 	if err != nil {
 		log.Fatalf("error creating temp file: %v", err)
@@ -143,7 +169,7 @@ func (user user) store() {
 	// It's important to close the file after creating it to ensure no locks are held on it.
 	defer tempFile.Close()
 
-	byte, err := json.Marshal(user)
+	byte, err := json.Marshal(u)
 	if err != nil {
 		log.Fatalf("error marshalling user: %v", err)
 	}
