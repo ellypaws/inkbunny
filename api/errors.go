@@ -2,6 +2,7 @@ package api
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 )
 
@@ -12,8 +13,8 @@ type ErrorResponse struct {
 
 func CheckError(body []byte) error {
 	var response ErrorResponse
-	if err := json.Unmarshal(body, &response); err != nil {
-		return err
+	if !errors.As(Error(body), &response) {
+		return fmt.Errorf("could not parse error response: %s", body)
 	}
 
 	if response.Code != nil {
@@ -21,6 +22,19 @@ func CheckError(body []byte) error {
 	}
 
 	return nil
+}
+
+func Error(body []byte) error {
+	var response ErrorResponse
+	if err := json.Unmarshal(body, &response); err != nil {
+		return err
+	}
+
+	return response
+}
+
+func (error ErrorResponse) Error() string {
+	return error.Message
 }
 
 const (
