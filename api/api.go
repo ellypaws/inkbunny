@@ -2,7 +2,9 @@ package api
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
+	"github.com/sahilm/fuzzy"
 	"io"
 	"net/http"
 	"net/url"
@@ -162,4 +164,21 @@ func GetUserID(username string) (UsernameAutocomplete, error) {
 	}
 
 	return users, nil
+}
+
+// GetSingleUser gets a single user by username, returns an error if no user is found
+func GetSingleUser(username string) (Autocomplete, error) {
+	users, err := GetUserID(username)
+	if err != nil {
+		return Autocomplete{}, err
+	}
+	if len(users.Results) == 0 {
+		return Autocomplete{}, errors.New("user not found")
+	}
+	// sort by the closest match using fuzzy
+	matches := fuzzy.FindFrom(username, users)
+	if len(matches) == 0 {
+		return Autocomplete{}, errors.New("user not found")
+	}
+	return users.Results[matches[0].Index], nil
 }
