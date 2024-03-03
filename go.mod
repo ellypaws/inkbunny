@@ -3,12 +3,9 @@ module github.com/ellypaws/inkbunny
 go 1.22
 
 require (
-	github.com/PuerkitoBio/goquery v1.9.1
 	github.com/charmbracelet/bubbles v0.18.0
 	github.com/charmbracelet/bubbletea v0.25.0
 	github.com/charmbracelet/lipgloss v0.9.1
-	github.com/sahilm/fuzzy v0.1.1-0.20230530133925-c48e322e2a8f
-	golang.org/x/net v0.21.0
 	golang.org/x/term v0.17.0
 )
 
