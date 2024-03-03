@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"strconv"
+	"strings"
 )
 
 // BooleanYN is a custom type to handle boolean values marshaled as "yes" or "no".
@@ -48,17 +49,16 @@ func (b *BooleanYN) UnmarshalJSON(data []byte) error {
 type IntString int
 
 func (i IntString) MarshalJSON() ([]byte, error) {
-	return json.Marshal(strconv.Itoa(int(i)))
+	return json.Marshal(i.String())
 }
 
 func (i *IntString) UnmarshalJSON(data []byte) error {
-	var s string
-	if err := json.Unmarshal(data, &s); err != nil {
-		return fmt.Errorf("failed to unmarshal string: %w", err)
+	if len(data) == 0 {
+		return nil
 	}
-	atoi, err := strconv.Atoi(s)
+	atoi, err := strconv.Atoi(strings.ReplaceAll(string(data), `"`, ""))
 	if err != nil {
-		return fmt.Errorf(`failed to convert string "%s" to int: %w`, s, err)
+		return fmt.Errorf(`failed to convert data %s to int: %w`, data, err)
 	}
 	*i = IntString(atoi)
 	return nil
@@ -80,14 +80,9 @@ func (i PriceString) MarshalJSON() ([]byte, error) {
 }
 
 func (i *PriceString) UnmarshalJSON(data []byte) error {
-	var f string
-	if err := json.Unmarshal(data, &f); err != nil {
-		return fmt.Errorf("failed to unmarshal float: %w", err)
-	}
-	// Sscanf is used to parse the string into a float64, as it can handle the $USD format.
-	_, err := fmt.Sscanf(f, "$%f", i)
+	_, err := fmt.Sscanf(strings.ReplaceAll(string(data), `"`, ""), `$%f`, i)
 	if err != nil {
-		return fmt.Errorf(`failed to convert string "%s" to float64: %w`, f, err)
+		return fmt.Errorf(`failed to convert data %s to float64: %w`, data, err)
 	}
 	return nil
 }

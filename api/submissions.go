@@ -117,11 +117,11 @@ type Submission struct {
 		RightThumbNonCustomX       IntString `json:"submission_right_thumb_huge_noncustom_x,omitempty"`
 		RightThumbNonCustomY       IntString `json:"submission_right_thumb_huge_noncustom_y,omitempty"`
 	} `json:"pools"`
-	Description             string    `json:"description"`
-	DescriptionBBCodeParsed string    `json:"description_bbcode_parsed"`
-	Writing                 string    `json:"writing"`
-	WritingBBCodeParsed     string    `json:"writing_bbcode_parsed"`
-	PoolsCount              IntString `json:"pools_count"`
+	Description             string `json:"description"`
+	DescriptionBBCodeParsed string `json:"description_bbcode_parsed"`
+	Writing                 string `json:"writing"`
+	WritingBBCodeParsed     string `json:"writing_bbcode_parsed"`
+	PoolsCount              int    `json:"pools_count"`
 	Ratings                 []struct {
 		ContentTagID IntString `json:"content_tag_id"`
 		Name         string    `json:"name"`
@@ -170,7 +170,7 @@ type ThumbnailDimensions struct {
 
 type SubmissionDetailsResponse struct {
 	Sid          string       `json:"sid"`
-	ResultsCount IntString    `json:"results_count"`
+	ResultsCount int          `json:"results_count"`
 	UserLocation string       `json:"user_location"`
 	Submissions  []Submission `json:"submissions"`
 }
