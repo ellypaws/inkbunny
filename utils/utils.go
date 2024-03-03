@@ -2,7 +2,6 @@ package utils
 
 import (
 	"github.com/charmbracelet/bubbletea"
-	"github.com/ellypaws/inkbunny/api"
 	"log"
 	"net/url"
 	"reflect"
@@ -55,7 +54,14 @@ func StructToUrlValues(s any) url.Values {
 	return urlValues
 }
 
-func UpdateNewMissing(oldList, newList []string) map[string][]api.WatchInfo {
+type WatchInfo struct {
+	Username  string
+	Date      time.Time
+	Watching  bool // Watching is true if you are watching the Username
+	WatchedBy bool // WatchedBy is true if the Username is watching you
+}
+
+func UpdateNewMissing(oldList, newList []string) map[string][]WatchInfo {
 	currentTime := time.Now().UTC()
 	newWatchlist, newFollows := newFollowers(oldList, newList, currentTime)
 	if len(newFollows) > 0 {
@@ -78,18 +84,18 @@ func UpdateNewMissing(oldList, newList []string) map[string][]api.WatchInfo {
 // newFollowers checks for new followers by checking if the watchlistStrings doesn't exist in user.Watchers or if the last state is unfollowing.
 // If a username is new or previously unfollowed, it's added to the new watchlist with the last state set to following.
 // Otherwise, the existing states are copied to the new watchlist.
-func newFollowers(oldList, newList []string, currentTime time.Time) (map[string][]api.WatchInfo, []string) {
-	newWatchlist := make(map[string][]api.WatchInfo)
+func newFollowers(oldList, newList []string, currentTime time.Time) (map[string][]WatchInfo, []string) {
+	newWatchlist := make(map[string][]WatchInfo)
 	var newFollows []string
 	for _, username := range newList {
 		// check if the username is in the old list
 		if !slices.Contains(oldList, username) {
 			// username is new
-			newWatchlist[username] = append(newWatchlist[username], api.WatchInfo{Date: currentTime, Watching: true})
+			newWatchlist[username] = append(newWatchlist[username], WatchInfo{Date: currentTime, Watching: true})
 			newFollows = append(newFollows, username)
 		} else {
 			// username is not new
-			newWatchlist[username] = append(newWatchlist[username], api.WatchInfo{Date: currentTime, Watching: false})
+			newWatchlist[username] = append(newWatchlist[username], WatchInfo{Date: currentTime, Watching: false})
 		}
 	}
 	return newWatchlist, newFollows
@@ -97,13 +103,13 @@ func newFollowers(oldList, newList []string, currentTime time.Time) (map[string]
 
 // checkMissing checks for unfollowing by looking at the missing usernames the new watchlist doesn't have that user.Watchers has.
 // If a username is missing from the new watchlist, it's added to the new watchlist with the last state set to unfollowing.
-func checkMissing(oldList []string, newWatchlist map[string][]api.WatchInfo, currentTime time.Time) []string {
+func checkMissing(oldList []string, newWatchlist map[string][]WatchInfo, currentTime time.Time) []string {
 	var unfollows []string
 	for _, username := range oldList {
 		states, exists := newWatchlist[username]
 		if !exists || !states[len(states)-1].Watching {
 			// Last state was user was watching you; now it's not in the new watchers list -> unfollow
-			newWatchlist[username] = append(states, api.WatchInfo{Date: currentTime, Watching: false})
+			newWatchlist[username] = append(states, WatchInfo{Date: currentTime, Watching: false})
 			unfollows = append(unfollows, username)
 		}
 	}
