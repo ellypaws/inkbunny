@@ -5,7 +5,7 @@ import (
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/ellypaws/inkbunny/api"
-	"github.com/ellypaws/inkbunny/utils"
+	"github.com/ellypaws/inkbunny/gui/utils"
 	"log"
 	"strings"
 	"time"

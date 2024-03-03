@@ -1,20 +1,12 @@
 package utils
 
 import (
-	"github.com/charmbracelet/bubbletea"
 	"log"
 	"net/url"
 	"reflect"
 	"slices"
 	"time"
 )
-
-// Wrap casts a message into a tea.Cmd
-func Wrap(msg any) tea.Cmd {
-	return func() tea.Msg {
-		return msg
-	}
-}
 
 // StructToUrlValues uses reflect to read json struct fields and set them as url.Values
 // It also checks if omitempty is set and ignores empty fields

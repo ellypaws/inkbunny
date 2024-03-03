@@ -3,7 +3,7 @@ package api
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/ellypaws/inkbunny/utils"
+	"github.com/ellypaws/inkbunny/api/utils"
 	"strings"
 )
 
