@@ -38,7 +38,19 @@ func StructToUrlValues(s any) url.Values {
 		if field.Tag.Get("json") == "omitempty" && value.String() == "" {
 			continue
 		}
-		urlValues.Add(field.Tag.Get("json"), value.String())
+
+		// if boolean, use "yes" or "no"
+		switch value.Kind() {
+		case reflect.Bool:
+			if value.Bool() {
+				urlValues.Add(field.Tag.Get("json"), "yes")
+			} else {
+				urlValues.Add(field.Tag.Get("json"), "no")
+			}
+		default:
+			urlValues.Add(field.Tag.Get("json"), value.String())
+		}
+
 	}
 	return urlValues
 }
