@@ -224,3 +224,35 @@ func (user Credentials) SubmissionDetails(req submissionDetailsRequest) (Submiss
 	return submission, nil
 
 }
+
+type SubmissionRequest struct {
+	SID          string `json:"sid"`
+	SubmissionID string `json:"submission_id"`
+	OutputMode   string `json:"output_mode,omitempty"`
+}
+
+type SubmissionFavoritesResponse struct {
+	Sid   string       `json:"sid"`
+	Users []UsernameID `json:"favingusers"`
+}
+
+func (user Credentials) SubmissionFavorites(req SubmissionRequest) (SubmissionFavoritesResponse, error) {
+	if !user.LoggedIn() {
+		return SubmissionFavoritesResponse{}, ErrNotLoggedIn
+	}
+	if req.SID == "" {
+		req.SID = user.Sid
+	}
+
+	resp, err := user.Get(apiURL("submissionfavingusers", utils.StructToUrlValues(req)))
+	if err != nil {
+		return SubmissionFavoritesResponse{}, err
+	}
+	defer resp.Body.Close()
+
+	var favorites SubmissionFavoritesResponse
+	if err := json.NewDecoder(resp.Body).Decode(&favorites); err != nil {
+		return SubmissionFavoritesResponse{}, err
+	}
+	return favorites, nil
+}

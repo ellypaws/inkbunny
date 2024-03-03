@@ -25,10 +25,10 @@ type LogoutResponse struct {
 }
 
 type WatchlistResponse struct {
-	Watches []BasicUser `json:"watches"`
+	Watches []UsernameID `json:"watches"`
 }
 
-type BasicUser struct {
+type UsernameID struct {
 	UserID   string `json:"user_id"`
 	Username string `json:"username"`
 }
@@ -59,9 +59,4 @@ type KeywordAutocomplete struct {
 		Autocomplete
 		SubmissionsCount int `json:"submissions_count"`
 	} `json:"results"`
-}
-
-type SubmissionFavoritesResponse struct {
-	Sid   string      `json:"sid"`
-	Users []BasicUser `json:"favingusers"`
 }
