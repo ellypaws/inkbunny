@@ -10,6 +10,11 @@ import (
 // BooleanYN is a custom type to handle boolean values marshaled as "yes" or "no".
 type BooleanYN bool
 
+const (
+	Yes BooleanYN = true
+	No  BooleanYN = false
+)
+
 // MarshalJSON converts the BooleanYN boolean into a JSON string of "yes" or "no".
 func (b BooleanYN) MarshalJSON() ([]byte, error) {
 	if b {
@@ -35,8 +40,8 @@ func (b *BooleanYN) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-// submissionDetailsRequest is modified to use BooleanYN for fields requiring "yes" or "no" representation.
-type submissionDetailsRequest struct {
+// SubmissionDetailsRequest is modified to use BooleanYN for fields requiring "yes" or "no" representation.
+type SubmissionDetailsRequest struct {
 	SID                         string `json:"sid"`
 	SubmissionIDs               string `json:"submission_ids"`
 	SubmissionIDSlice           []string
@@ -226,7 +231,7 @@ const (
 	SubmissionTypePhotography
 )
 
-func (user Credentials) SubmissionDetails(req submissionDetailsRequest) (SubmissionDetailsResponse, error) {
+func (user Credentials) SubmissionDetails(req SubmissionDetailsRequest) (SubmissionDetailsResponse, error) {
 	if !user.LoggedIn() {
 		return SubmissionDetailsResponse{}, ErrNotLoggedIn
 	}
