@@ -2,38 +2,46 @@ package api
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/url"
 )
 
+var (
+	ErrNilUser       = errors.New("user is nil")
+	ErrEmptyPassword = errors.New("username is set but password is empty")
+	ErrNotLoggedIn   = errors.New("not logged in")
+)
+
 func (user *Credentials) Login() (*Credentials, error) {
+	if user == nil {
+		return nil, ErrNilUser
+	}
 	if user.Username == "" || user.Username == "guest" {
 		user.Username = "guest"
 	} else if user.Password == "" {
-		return nil, fmt.Errorf("username is set but password is empty")
+		return nil, ErrEmptyPassword
 	}
 	resp, err := user.PostForm(apiURL("login"), url.Values{"username": {user.Username}, "password": {user.Password}})
 	user.Password = ""
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error logging in: %w", err)
 	}
 	defer resp.Body.Close()
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error reading response: %w", err)
 	}
 
 	if err = json.Unmarshal(body, user); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error parsing response: %w", err)
 	}
 
 	user.Ratings.parseMask()
 
 	return user, nil
 }
-
-var ErrNotLoggedIn = fmt.Errorf("not logged in")
 
 func (user Credentials) LoggedIn() bool {
 	return user.Sid != ""
@@ -63,6 +71,9 @@ func (ratings *Ratings) parseMask() {
 }
 
 func (user *Credentials) Logout() error {
+	if user == nil {
+		return ErrNotLoggedIn
+	}
 	resp, err := user.Get(apiURL("logout", url.Values{"sid": {user.Sid}}))
 	if err != nil {
 		return err
