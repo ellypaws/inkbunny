@@ -15,6 +15,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("error logging in: %v", err)
 	}
+	u.store()
 
 	log.Printf("logged in as %s, session id: %s", u.Credentials.Username, u.Credentials.Sid)
 
@@ -40,9 +41,8 @@ func login() (user, error) {
 	if u.Credentials == nil || u.Credentials.Sid == "" {
 		u.Credentials, err = loginPrompt().Login()
 		if err != nil {
-			//log.Fatalf("error logging in: %v", err)
+			return u, err
 		}
-		u.store()
 	}
 	return u, err
 }
@@ -76,11 +76,16 @@ func updateFollowers(u user, watchlistStrings []string) map[string][]state {
 		log.Printf("new follows (%d): %v", len(newFollows), newFollows)
 	}
 
-	// Check for unfollows
+	if len(u.Watchers) == 0 {
+		// First run, no previous states
+		return newWatchlist
+	}
+
 	unfollows := u.checkMissing(newWatchlist, currentTime)
 	if len(unfollows) > 0 {
 		log.Printf("unfollows (%d): %v", len(unfollows), unfollows)
 	}
+
 	return newWatchlist
 }
 
@@ -93,8 +98,8 @@ func (u user) newFollowers(watchlistStrings []string, currentTime time.Time) (ma
 	// Process new follows
 	for _, watcher := range watchlistStrings {
 		states, exists := u.Watchers[watcher]
-		if !exists || !states[len(states)-1].Following {
-			newWatchlist[watcher] = append(states, state{Date: currentTime, Following: true})
+		if !exists || !states[len(states)-1].Watching {
+			newWatchlist[watcher] = append(states, state{Date: currentTime, Watching: true})
 			newFollows = append(newFollows, watcher)
 		} else {
 			newWatchlist[watcher] = states // Copy existing states if no change
@@ -108,9 +113,9 @@ func (u user) newFollowers(watchlistStrings []string, currentTime time.Time) (ma
 func (u user) checkMissing(newWatchlist map[string][]state, currentTime time.Time) []string {
 	var unfollows []string
 	for username, states := range u.Watchers {
-		if _, found := newWatchlist[username]; !found && states[len(states)-1].Following {
+		if _, found := newWatchlist[username]; !found && states[len(states)-1].Watching {
 			// Last state was following, now it's not in the new watchers list -> unfollow
-			newWatchlist[username] = append(states, state{Date: currentTime, Following: false})
+			newWatchlist[username] = append(states, state{Date: currentTime, Watching: false})
 			unfollows = append(unfollows, username)
 		}
 	}
@@ -120,16 +125,24 @@ func (u user) checkMissing(newWatchlist map[string][]state, currentTime time.Tim
 func (u user) getWatchlist() []string {
 	var username string
 	var watchlistStrings []string
-	var err error
 	fmt.Print("Enter username to get watchers for: ")
 	fmt.Scanln(&username)
 	if username == "" || username == u.Credentials.Username || username == "self" {
-		watchlistStrings, err = u.Credentials.GetWatchlist()
+		watching, err := u.Credentials.GetWatching()
+		if err != nil {
+			u.logout()
+		}
+		for i := range watching {
+			watchlistStrings = append(watchlistStrings, watching[i].Username)
+		}
 	} else {
-		watchlistStrings, err = u.Credentials.GetWatchers(username)
-	}
-	if err != nil {
-		u.logout()
+		watchedBy, err := u.Credentials.GetWatchedBy(username)
+		if err != nil {
+			u.logout()
+		}
+		for i := range watchedBy {
+			watchlistStrings = append(watchlistStrings, watchedBy[i].Username)
+		}
 	}
 
 	return watchlistStrings
@@ -141,8 +154,8 @@ type user struct {
 }
 
 type state struct {
-	Date      time.Time `json:"date"`
-	Following bool      `json:"following"`
+	Date     time.Time `json:"date"`
+	Watching bool      `json:"following"`
 }
 
 func read() user {
