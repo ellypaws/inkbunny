@@ -2,7 +2,7 @@ package main
 
 import (
 	tea "github.com/charmbracelet/bubbletea"
-	"inkbunny/gui"
+	"github.com/ellypaws/inkbunny/gui"
 	"log"
 	"os"
 )

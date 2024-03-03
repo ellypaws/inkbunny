@@ -4,7 +4,7 @@ import (
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"inkbunny/utils"
+	"github.com/ellypaws/inkbunny/utils"
 )
 
 var docStyle = lipgloss.NewStyle().Margin(1, 2)

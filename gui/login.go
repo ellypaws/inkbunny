@@ -5,8 +5,8 @@ package gui
 
 import (
 	"fmt"
-	"inkbunny/api"
-	"inkbunny/utils"
+	"github.com/ellypaws/inkbunny/api"
+	"github.com/ellypaws/inkbunny/utils"
 	"strings"
 
 	"github.com/charmbracelet/bubbles/cursor"

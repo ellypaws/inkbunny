@@ -3,8 +3,8 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/ellypaws/inkbunny/api"
 	"golang.org/x/term"
-	"inkbunny/api"
 	"log"
 	"os"
 	"time"

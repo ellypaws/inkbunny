@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
-	"inkbunny/api"
-	"inkbunny/utils"
+	"github.com/ellypaws/inkbunny/api"
+	"github.com/ellypaws/inkbunny/utils"
 	"log"
 	"strings"
 	"time"
@@ -55,7 +55,12 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, utils.Wrap(err)
 		}
 
-		m.p = m.p.(Pager).SetContent(strings.Join(watchlist, "\n"))
+		watchlistString := strings.Builder{}
+		for i := range watchlist {
+			watchlistString.WriteString(watchlist[i].Username)
+			watchlistString.WriteString("\n")
+		}
+		m.p = m.p.(Pager).SetContent(watchlistString.String())
 		m.chooseFocus(&m.p)
 	case ShowMenu:
 		m.chooseFocus(&m.menu)

@@ -2,7 +2,7 @@ package utils
 
 import (
 	"github.com/charmbracelet/bubbletea"
-	"inkbunny/api"
+	"github.com/ellypaws/inkbunny/api"
 	"log"
 	"net/url"
 	"reflect"
