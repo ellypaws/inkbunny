@@ -25,7 +25,7 @@ func Wrap(msg any) tea.Cmd {
 //		Field2 string `json:"field2"`
 //	}
 func StructToUrlValues(s any) url.Values {
-	var urlValues url.Values
+	var urlValues = make(url.Values)
 	v := reflect.ValueOf(s)
 	t := v.Type()
 	for i := 0; i < v.NumField(); i++ {
