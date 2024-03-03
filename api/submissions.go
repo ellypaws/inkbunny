@@ -2,7 +2,6 @@ package api
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"github.com/ellypaws/inkbunny/utils"
 	"strings"
@@ -14,6 +13,9 @@ type BooleanYN bool
 const (
 	Yes BooleanYN = true
 	No  BooleanYN = false
+
+	True  BooleanYN = true
+	False BooleanYN = false
 )
 
 // MarshalJSON converts the BooleanYN boolean into a JSON string of "yes" or "no".
@@ -31,12 +33,12 @@ func (b *BooleanYN) UnmarshalJSON(data []byte) error {
 		return err
 	}
 	switch s {
-	case "yes":
+	case "t", "yes", "true":
 		*b = true
-	case "no":
+	case "f", "no", "false":
 		*b = false
 	default:
-		return errors.New("boolean must be 'yes' or 'no'")
+		return fmt.Errorf(`allowed values for Boolean ["t","yes","true","f","no","false"], got "%s"`, s)
 	}
 	return nil
 }
