@@ -1,21 +1,30 @@
 package api
 
 import (
+	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"net/http/cookiejar"
 	"net/url"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/PuerkitoBio/goquery"
 	"golang.org/x/net/publicsuffix"
 )
 
-func (user Credentials) GetWatchers(username string) ([]string, error) {
-	var watchers []string
+type WatchInfo struct {
+	Username  string
+	Date      time.Time
+	Watching  bool // Watching is true if you are watching the Username
+	WatchedBy bool // WatchedBy is true if the Username is watching you
+}
+
+// GetWatchedBy gets the list of users watching a given username
+// It returns a slice of WatchInfo structs
+func (user Credentials) GetWatchedBy(username string) ([]WatchInfo, error) {
 	// Assuming GetSingleUser correctly retrieves a user ID for a given username
 	userID, err := GetSingleUser(username)
 	if err != nil {
@@ -43,6 +52,8 @@ func (user Credentials) GetWatchers(username string) ([]string, error) {
 	page := 1
 	backoff := 5 * time.Second
 	var retries int
+
+	var watchlist []WatchInfo
 	for {
 		// Build the URL with query parameters for the current page
 		apiUrl := inkbunnyURL("watchlist_process.php", url.Values{
@@ -108,25 +119,30 @@ func (user Credentials) GetWatchers(username string) ([]string, error) {
 		}
 
 		// Select the table and iterate over each row
-		foundWatchers := false
+		var foundWatchers bool
+		var numWatchers int
 		tableSelection.Find("tbody > tr").Each(func(i int, s *goquery.Selection) {
 			log.Printf("Processing tr #%d", i+1)
 			// Ignore rows that don't have a link (e.g., date rows)
 			link := s.Find("td > span > a")
-			href, exists := link.Attr("href")
-			if exists {
-				foundWatchers = true
-				// Extract username from URL
-				watcherUsername := strings.TrimPrefix(href, "/")
-				watchers = append(watchers, watcherUsername)
-				log.Printf("Found watcher: %s", watcherUsername)
+			if link.Length() == 0 {
+				return
 			}
+			foundWatchers = true
+			watchlist = append(watchlist, WatchInfo{
+				Username:  link.Text(),
+				Watching:  link.HasClass("watching"),
+				WatchedBy: true,
+			})
+			numWatchers++
 		})
 
 		if !foundWatchers {
 			log.Println("No watchers found on this page, assuming end of list.")
 			break
 		}
+
+		log.Printf("Found %d watchers on page %d", numWatchers, page)
 
 		time.Sleep(1 * time.Second)
 
@@ -135,7 +151,7 @@ func (user Credentials) GetWatchers(username string) ([]string, error) {
 		retries = 0
 	}
 
-	return watchers, nil
+	return watchlist, nil
 }
 
 // parseRetryAfter attempts to parse the Retry-After header value and return the corresponding duration.
@@ -152,4 +168,28 @@ func parseRetryAfter(retryAfter string) (time.Duration, error) {
 	}
 
 	return 0, fmt.Errorf("invalid Retry-After format")
+}
+
+// GetWatching gets the watchlist of a logged-in user
+func (user Credentials) GetWatching() ([]UsernameID, error) {
+	resp, err := user.Get(apiURL("watchlist", url.Values{"sid": {user.Sid}}))
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := CheckError(body); err != nil {
+		return nil, fmt.Errorf("error getting watchlist: %w", err)
+	}
+
+	var watchResp WatchlistResponse
+	if err := json.Unmarshal(body, &watchResp); err != nil {
+		return nil, err
+	}
+
+	return watchResp.Watches, nil
 }

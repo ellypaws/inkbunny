@@ -71,35 +71,6 @@ func (user Credentials) PostForm(url *url.URL, values url.Values) (*http.Respons
 	return user.Post(url, "application/x-www-form-urlencoded", strings.NewReader(values.Encode()))
 }
 
-// GetWatchlist gets the watchlist of a logged-in user
-func (user Credentials) GetWatchlist() ([]string, error) {
-	resp, err := user.Get(apiURL("watchlist", url.Values{"sid": {user.Sid}}))
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	if err := CheckError(body); err != nil {
-		return nil, fmt.Errorf("error getting watchlist: %w", err)
-	}
-
-	var watchResp WatchlistResponse
-	if err := json.Unmarshal(body, &watchResp); err != nil {
-		return nil, err
-	}
-
-	var usernames []string
-	for _, watch := range watchResp.Watches {
-		usernames = append(usernames, watch.Username)
-	}
-
-	return usernames, nil
-}
-
 // Function to find mutual elements in two slices
 func findMutual(a, b []string) []string {
 	var mutual []string
