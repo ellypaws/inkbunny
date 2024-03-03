@@ -3,6 +3,7 @@ package api
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"github.com/ellypaws/inkbunny/utils"
 	"strings"
 )
@@ -240,15 +241,15 @@ func (user Credentials) SubmissionDetails(req SubmissionDetailsRequest) (Submiss
 		urlValues.Set("submission_ids", strings.Join(req.SubmissionIDSlice, ","))
 	}
 
-	resp, err := user.Get(apiURL("submission", urlValues))
+	resp, err := user.Get(apiURL("submissions", urlValues))
 	if err != nil {
-		return SubmissionDetailsResponse{}, err
+		return SubmissionDetailsResponse{}, fmt.Errorf("failed to get submission details: %w", err)
 	}
 	defer resp.Body.Close()
 
 	var submission SubmissionDetailsResponse
 	if err := json.NewDecoder(resp.Body).Decode(&submission); err != nil {
-		return SubmissionDetailsResponse{}, err
+		return SubmissionDetailsResponse{}, fmt.Errorf("failed to unmarshal response body: %w", err)
 	}
 	return submission, nil
 

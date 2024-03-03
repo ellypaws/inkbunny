@@ -49,7 +49,6 @@ func StructToUrlValues(s any) url.Values {
 		default:
 			urlValues.Add(field.Tag.Get("json"), value.String())
 		}
-
 	}
 	return urlValues
 }
