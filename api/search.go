@@ -56,10 +56,10 @@ type SearchResponse struct {
 	} `json:"keyword_list,omitempty"`
 	Submissions []struct {
 		SubmissionBasic
-		UnreadDateSystem string `json:"unread_datetime_system"`
-		UnreadDateUser   string `json:"unread_datetime"`
-		Updated          bool   `json:"updated"`
-		Stars            string `json:"stars"`
+		UnreadDateSystem string    `json:"unread_datetime_system"`
+		UnreadDateUser   string    `json:"unread_datetime"`
+		Updated          BooleanYN `json:"updated"`
+		Stars            string    `json:"stars"`
 	} `json:"submissions,omitempty"`
 }
 

@@ -56,78 +56,78 @@ type SubmissionDetailsRequest struct {
 }
 
 type SubmissionBasic struct {
-	SubmissionID                string `json:"submission_id"`
-	Hidden                      bool   `json:"hidden"`
-	Username                    string `json:"username"`
-	UserID                      string `json:"user_id"`
-	CreateDateSystem            string `json:"create_datetime"`
-	CreateDateUser              string `json:"create_datetime_usertime"`
-	UpdateDateSystem            string `json:"last_file_update_datetime,omitempty"`
-	UpdateDateUser              string `json:"last_file_update_datetime_usertime,omitempty"`
-	FileName                    string `json:"file_name"`
-	LatestFileName              string `json:"latest_file_name"`
-	ThumbnailURL                string `json:"thumbnail_url,omitempty"`
-	ThumbnailURLNonCustom       string `json:"thumbnail_url_noncustom,omitempty"`
-	LatestThumbnailURL          string `json:"latest_thumbnail_url,omitempty"`
-	LatestThumbnailURLNonCustom string `json:"latest_thumbnail_url_noncustom,omitempty"`
-	Title                       string `json:"title"`
-	Deleted                     bool   `json:"deleted"`
-	Public                      bool   `json:"public"`
-	MimeType                    string `json:"mimetype"`
-	LatestMimeType              string `json:"latest_mimetype"`
-	PageCount                   int    `json:"pagecount"`
-	RatingID                    int    `json:"rating_id"`
-	RatingName                  string `json:"rating_name"`
+	SubmissionID                string    `json:"submission_id"`
+	Hidden                      BooleanYN `json:"hidden"`
+	Username                    string    `json:"username"`
+	UserID                      string    `json:"user_id"`
+	CreateDateSystem            string    `json:"create_datetime"`
+	CreateDateUser              string    `json:"create_datetime_usertime"`
+	UpdateDateSystem            string    `json:"last_file_update_datetime,omitempty"`
+	UpdateDateUser              string    `json:"last_file_update_datetime_usertime,omitempty"`
+	FileName                    string    `json:"file_name"`
+	LatestFileName              string    `json:"latest_file_name"`
+	ThumbnailURL                string    `json:"thumbnail_url,omitempty"`
+	ThumbnailURLNonCustom       string    `json:"thumbnail_url_noncustom,omitempty"`
+	LatestThumbnailURL          string    `json:"latest_thumbnail_url,omitempty"`
+	LatestThumbnailURLNonCustom string    `json:"latest_thumbnail_url_noncustom,omitempty"`
+	Title                       string    `json:"title"`
+	Deleted                     BooleanYN `json:"deleted"`
+	Public                      BooleanYN `json:"public"`
+	MimeType                    string    `json:"mimetype"`
+	LatestMimeType              string    `json:"latest_mimetype"`
+	PageCount                   int       `json:"pagecount"`
+	RatingID                    int       `json:"rating_id"`
+	RatingName                  string    `json:"rating_name"`
 	ThumbnailDimensions
-	SubmissionTypeID int    `json:"submission_type_id"`
-	TypeName         string `json:"type_name"`
-	Digitalsales     bool   `json:"digitalsales"`
-	Printsales       bool   `json:"printsales"`
-	FriendsOnly      bool   `json:"friends_only"`
-	GuestBlock       bool   `json:"guest_block"`
-	Scraps           bool   `json:"scraps"`
+	SubmissionTypeID int       `json:"submission_type_id"`
+	TypeName         string    `json:"type_name"`
+	Digitalsales     BooleanYN `json:"digitalsales"`
+	Printsales       BooleanYN `json:"printsales"`
+	FriendsOnly      BooleanYN `json:"friends_only"`
+	GuestBlock       BooleanYN `json:"guest_block"`
+	Scraps           BooleanYN `json:"scraps"`
 }
 
 type Submission struct {
 	SubmissionBasic
 	Keywords []struct {
-		KeywordID   string `json:"keyword_id"`
-		KeywordName string `json:"keyword_name"`
-		Suggested   bool   `json:"contributed"`
-		Count       int    `json:"submissions_count"`
+		KeywordID   string    `json:"keyword_id"`
+		KeywordName string    `json:"keyword_name"`
+		Suggested   BooleanYN `json:"contributed"`
+		Count       int       `json:"submissions_count"`
 	} `json:"keywords"`
-	Favorite         bool   `json:"favorite"`
-	FavoritesCount   int    `json:"favorites_count"`
-	UserIconFileName string `json:"user_icon_file_name"`
+	Favorite         BooleanYN `json:"favorite"`
+	FavoritesCount   int       `json:"favorites_count"`
+	UserIconFileName string    `json:"user_icon_file_name"`
 	UserIconURL      struct {
 		Large  string `json:"user_icon_url_large,omitempty"`
 		Medium string `json:"user_icon_url_medium,omitempty"`
 		Small  string `json:"user_icon_url_small,omitempty"`
 	}
 	Files []struct {
-		FileID                string `json:"file_id"`
-		FileName              string `json:"file_name"`
-		ThumbnailURL          string `json:"thumbnail_url,omitempty"`
-		ThumbnailURLNonCustom string `json:"thumbnail_url_noncustom,omitempty"`
-		FileURL               string `json:"file_url,omitempty"`
-		MimeType              string `json:"mimetype"`
-		SubmissionID          string `json:"submission_id"`
-		UserID                string `json:"user_id"`
-		SubmissionFileOrder   int    `json:"submission_file_order"`
-		SizeX                 int    `json:"full_size_x"`
-		SizeY                 int    `json:"full_size_y"`
-		ThumbX                int    `json:"thumb_huge_x,omitempty"`
-		ThumbY                int    `json:"thumb_huge_y,omitempty"`
-		ThumbNonCustomX       int    `json:"thumb_huge_noncustom_x,omitempty"`
-		ThumbNonCustomY       int    `json:"thumb_huge_noncustom_y,omitempty"`
-		InitialFileMD5        string `json:"initial_file_md5"`
-		FullFileMD5           string `json:"full_file_md5"`
-		LargeFileMD5          string `json:"large_file_md5"`
-		SmallFileMD5          string `json:"small_file_md5"`
-		ThumbnailMD5          string `json:"thumbnail_md5"`
-		Deleted               bool   `json:"deleted"`
-		CreateDateTime        string `json:"create_datetime"`
-		CreateDateTimeUser    string `json:"create_datetime_usertime"`
+		FileID                string    `json:"file_id"`
+		FileName              string    `json:"file_name"`
+		ThumbnailURL          string    `json:"thumbnail_url,omitempty"`
+		ThumbnailURLNonCustom string    `json:"thumbnail_url_noncustom,omitempty"`
+		FileURL               string    `json:"file_url,omitempty"`
+		MimeType              string    `json:"mimetype"`
+		SubmissionID          string    `json:"submission_id"`
+		UserID                string    `json:"user_id"`
+		SubmissionFileOrder   int       `json:"submission_file_order"`
+		SizeX                 int       `json:"full_size_x"`
+		SizeY                 int       `json:"full_size_y"`
+		ThumbX                int       `json:"thumb_huge_x,omitempty"`
+		ThumbY                int       `json:"thumb_huge_y,omitempty"`
+		ThumbNonCustomX       int       `json:"thumb_huge_noncustom_x,omitempty"`
+		ThumbNonCustomY       int       `json:"thumb_huge_noncustom_y,omitempty"`
+		InitialFileMD5        string    `json:"initial_file_md5"`
+		FullFileMD5           string    `json:"full_file_md5"`
+		LargeFileMD5          string    `json:"large_file_md5"`
+		SmallFileMD5          string    `json:"small_file_md5"`
+		ThumbnailMD5          string    `json:"thumbnail_md5"`
+		Deleted               BooleanYN `json:"deleted"`
+		CreateDateTime        string    `json:"create_datetime"`
+		CreateDateTimeUser    string    `json:"create_datetime_usertime"`
 	} `json:"files"`
 	Pools []struct {
 		PoolID                     string `json:"pool_id"`
@@ -162,11 +162,11 @@ type Submission struct {
 		Description  string `json:"description"`
 		RatingID     int    `json:"rating_id"`
 	} `json:"ratings"`
-	CommentsCount    int    `json:"comments_count"`
-	Views            int    `json:"views"`
-	SalesDescription string `json:"sales_description"`
-	ForSale          bool   `json:"forsale"`
-	DigitalPrice     int    `json:"digital_price"`
+	CommentsCount    int       `json:"comments_count"`
+	Views            int       `json:"views"`
+	SalesDescription string    `json:"sales_description"`
+	ForSale          BooleanYN `json:"forsale"`
+	DigitalPrice     int       `json:"digital_price"`
 	Prints           []struct {
 		PrintSizeID        int    `json:"print_size_id"`
 		Name               string `json:"name"`
