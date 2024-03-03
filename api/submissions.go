@@ -2,21 +2,51 @@ package api
 
 import (
 	"encoding/json"
+	"errors"
 	"inkbunny/utils"
 	"strings"
 )
 
+// BooleanYN is a custom type to handle boolean values marshaled as "yes" or "no".
+type BooleanYN bool
+
+// MarshalJSON converts the BooleanYN boolean into a JSON string of "yes" or "no".
+func (b BooleanYN) MarshalJSON() ([]byte, error) {
+	if b {
+		return json.Marshal("yes")
+	}
+	return json.Marshal("no")
+}
+
+// UnmarshalJSON parses a JSON "yes" or "no" into a BooleanYN boolean.
+func (b *BooleanYN) UnmarshalJSON(data []byte) error {
+	var s string
+	if err := json.Unmarshal(data, &s); err != nil {
+		return err
+	}
+	switch s {
+	case "yes":
+		*b = true
+	case "no":
+		*b = false
+	default:
+		return errors.New("boolean must be 'yes' or 'no'")
+	}
+	return nil
+}
+
+// submissionDetailsRequest is modified to use BooleanYN for fields requiring "yes" or "no" representation.
 type submissionDetailsRequest struct {
 	SID                         string `json:"sid"`
 	SubmissionIDs               string `json:"submission_ids"`
 	SubmissionIDSlice           []string
-	OutputMode                  string `json:"output_mode"`
-	SortKeywordsBy              string `json:"sort_keywords_by"`
-	ShowDescription             string `json:"show_description"`
-	ShowDescriptionBbcodeParsed string `json:"show_description_bbcode_parsed"`
-	ShowWriting                 string `json:"show_writing"`
-	ShowWritingBbcodeParsed     string `json:"show_writing_bbcode_parsed"`
-	ShowPools                   string `json:"show_pools"`
+	OutputMode                  string    `json:"output_mode"`
+	SortKeywordsBy              string    `json:"sort_keywords_by"`
+	ShowDescription             BooleanYN `json:"show_description"`
+	ShowDescriptionBbcodeParsed BooleanYN `json:"show_description_bbcode_parsed"`
+	ShowWriting                 BooleanYN `json:"show_writing"`
+	ShowWritingBbcodeParsed     BooleanYN `json:"show_writing_bbcode_parsed"`
+	ShowPools                   BooleanYN `json:"show_pools"`
 }
 
 type SubmissionBasic struct {
@@ -217,8 +247,7 @@ func (user Credentials) SubmissionDetails(req submissionDetailsRequest) (Submiss
 	defer resp.Body.Close()
 
 	var submission SubmissionDetailsResponse
-	dec := json.NewDecoder(resp.Body)
-	if err := dec.Decode(&submission); err != nil {
+	if err := json.NewDecoder(resp.Body).Decode(&submission); err != nil {
 		return SubmissionDetailsResponse{}, err
 	}
 	return submission, nil
