@@ -214,7 +214,7 @@ func (user Credentials) SubmissionDetails(req SubmissionDetailsRequest) (Submiss
 		urlValues.Set("submission_ids", strings.Join(req.SubmissionIDSlice, ","))
 	}
 
-	resp, err := user.Get(apiURL("submissions", urlValues))
+	resp, err := user.Get(ApiUrl("submissions", urlValues))
 	if err != nil {
 		return SubmissionDetailsResponse{}, fmt.Errorf("failed to get submission details: %w", err)
 	}
@@ -247,7 +247,7 @@ func (user Credentials) SubmissionFavorites(req SubmissionRequest) (SubmissionFa
 		req.SID = user.Sid
 	}
 
-	resp, err := user.Get(apiURL("submissionfavingusers", utils.StructToUrlValues(req)))
+	resp, err := user.Get(ApiUrl("submissionfavingusers", utils.StructToUrlValues(req)))
 	if err != nil {
 		return SubmissionFavoritesResponse{}, err
 	}

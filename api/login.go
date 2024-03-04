@@ -27,7 +27,7 @@ func (user *Credentials) Login() (*Credentials, error) {
 	} else if user.Password == "" {
 		return nil, ErrEmptyPassword
 	}
-	resp, err := user.PostForm(apiURL("login"), url.Values{"username": {user.Username}, "password": {user.Password}})
+	resp, err := user.PostForm(ApiUrl("login"), url.Values{"username": {user.Username}, "password": {user.Password}})
 	user.Password = ""
 	if err != nil {
 		return nil, fmt.Errorf("error logging in: %w", err)
@@ -55,7 +55,7 @@ func (user *Credentials) Logout() error {
 	if user == nil {
 		return ErrNotLoggedIn
 	}
-	resp, err := user.Get(apiURL("logout", url.Values{"sid": {user.Sid}}))
+	resp, err := user.Get(ApiUrl("logout", url.Values{"sid": {user.Sid}}))
 	if err != nil {
 		return err
 	}

@@ -13,8 +13,8 @@ import (
 	"strings"
 )
 
-// inkbunnyURL is a helper function to generate Inkbunny URLs with a given path and optional query parameters
-func inkbunnyURL(path string, values ...url.Values) *url.URL {
+// InkbunnyUrl is a helper function to generate Inkbunny URLs with a given path and optional query parameters
+func InkbunnyUrl(path string, values ...url.Values) *url.URL {
 	request := &url.URL{
 		Scheme: "https",
 		Host:   "inkbunny.net",
@@ -27,13 +27,13 @@ func inkbunnyURL(path string, values ...url.Values) *url.URL {
 	return request
 }
 
-// apiURL is a helper function to generate Inkbunny API URLs.
+// ApiUrl is a helper function to generate Inkbunny API URLs.
 // path is the name of the API endpoint, without the "api_" prefix or ".php" suffix
 // example: "login" for "https://inkbunny.net/api_login.php"
 //
-//	url := apiURL("login", url.Values{"username": {"guest"}, "password": {""}})
-func apiURL(path string, values ...url.Values) *url.URL {
-	return inkbunnyURL(fmt.Sprintf("api_%v.php", path), values...)
+//	url := ApiUrl("login", url.Values{"username": {"guest"}, "password": {""}})
+func ApiUrl(path string, values ...url.Values) *url.URL {
+	return InkbunnyUrl(fmt.Sprintf("api_%v.php", path), values...)
 }
 
 func (user Credentials) Request(method string, url string, body io.Reader) (*http.Request, error) {
@@ -94,7 +94,7 @@ func findMutual(a, b []string) []string {
 func (user Credentials) ChangeRating(rating Ratings) error {
 	user.Ratings = rating
 	val := utils.StructToUrlValues(user)
-	resp, err := user.PostForm(apiURL("userrating"), val)
+	resp, err := user.PostForm(ApiUrl("userrating"), val)
 	if err != nil {
 		return err
 	}
@@ -117,7 +117,7 @@ func (user Credentials) ChangeRating(rating Ratings) error {
 }
 
 func GetUserID(username string) (UsernameAutocomplete, error) {
-	resp, err := Credentials{}.Get(apiURL("username_autosuggest", url.Values{"username": {username}}))
+	resp, err := Credentials{}.Get(ApiUrl("username_autosuggest", url.Values{"username": {username}}))
 	if err != nil {
 		return UsernameAutocomplete{}, err
 	}

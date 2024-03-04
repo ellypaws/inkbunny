@@ -8,14 +8,14 @@ import (
 )
 
 func TestInkbunnyURL(t *testing.T) {
-	url := inkbunnyURL("path", url.Values{"key": {"value"}})
+	url := InkbunnyUrl("path", url.Values{"key": {"value"}})
 	if url.String() != "https://inkbunny.net/path?key=value" {
 		t.Errorf("Expected https://inkbunny.net/path?key=value, got %s", url.String())
 	}
 }
 
 func TestApiURL(t *testing.T) {
-	url := apiURL("path", url.Values{"key": {"value"}})
+	url := ApiUrl("path", url.Values{"key": {"value"}})
 	if url.String() != "https://inkbunny.net/api_path.php?key=value" {
 		t.Errorf("Expected https://inkbunny.net/api_path.php?key=value, got %s", url.String())
 	}
@@ -31,7 +31,7 @@ func TestApiWithStruct(t *testing.T) {
 		StrongViolence: false,
 	}}
 
-	url := apiURL("path", utils.StructToUrlValues(user))
+	url := ApiUrl("path", utils.StructToUrlValues(user))
 	if url.String() != "https://inkbunny.net/api_path.php?sid=sid&username=username" {
 		t.Errorf("Expected https://inkbunny.net/api_path.php?sid=sid&username=username, got %s", url.String())
 	}

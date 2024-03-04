@@ -172,7 +172,7 @@ func parseRetryAfter(retryAfter string) (time.Duration, error) {
 
 // GetWatching gets the watchlist of a logged-in user
 func (user Credentials) GetWatching() ([]UsernameID, error) {
-	resp, err := user.Get(apiURL("watchlist", url.Values{"sid": {user.Sid}}))
+	resp, err := user.Get(ApiUrl("watchlist", url.Values{"sid": {user.Sid}}))
 	if err != nil {
 		return nil, err
 	}
