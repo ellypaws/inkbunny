@@ -9,9 +9,9 @@ import (
 
 // SubmissionDetailsRequest is modified to use BooleanYN for fields requiring "yes" or "no" representation.
 type SubmissionDetailsRequest struct {
-	SID                         string `json:"sid"`
-	SubmissionIDs               string `json:"submission_ids"`
-	SubmissionIDSlice           []string
+	SID                         string    `json:"sid"`
+	SubmissionIDs               string    `json:"submission_ids"` // SubmissionIDs is a comma-separated list of submission IDs
+	SubmissionIDSlice           []string  // SubmissionIDSlice will be joined as a comma-separated into SubmissionIDs
 	OutputMode                  string    `json:"output_mode"`
 	SortKeywordsBy              string    `json:"sort_keywords_by"`
 	ShowDescription             BooleanYN `json:"show_description"`
@@ -199,6 +199,13 @@ func (user Credentials) SubmissionDetails(req SubmissionDetailsRequest) (Submiss
 	}
 	if req.SID == "" {
 		req.SID = user.Sid
+	}
+
+	if len(req.SubmissionIDSlice) > 0 {
+		if req.SubmissionIDs != "" {
+			req.SubmissionIDs += ","
+		}
+		req.SubmissionIDs += strings.Join(req.SubmissionIDSlice, ",")
 	}
 
 	urlValues := utils.StructToUrlValues(req)
