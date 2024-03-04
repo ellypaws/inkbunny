@@ -10,17 +10,17 @@
     <img alt="Inkbunny" src="https://img.shields.io/badge/website-inkbunny.net-blue">
   </a>
   <a href="https://wiki.inkbunny.net/wiki/API">
-    <img alt="API" src="https://img.shields.io/badge/api-inkbunny.net-blue">
+    <img alt="API" src="https://img.shields.io/badge/api-wiki.inkbunny.net-blue">
   </a>
-  <a href="https://pkg.go.dev/github.com/ellypaws/inkbunny">
+  <a href="https://pkg.go.dev/github.com/ellypaws/inkbunny/api">
     <img alt="go.dev reference" src="https://img.shields.io/badge/go.dev-reference-007d9c?logo=go&logoColor=white">
   </a>
-  <a href="https://goreportcard.com/report/github.com/ellypaws/inkbunny">
-    <img src="https://goreportcard.com/badge/github.com/ellypaws/inkbunny" alt="Go Report Card" />
+  <a href="https://goreportcard.com/report/github.com/ellypaws/inkbunny/api">
+    <img src="https://goreportcard.com/badge/github.com/ellypaws/inkbunny/api" alt="Go Report Card" />
   </a>
   <br>
   <a href="https://github.com/ellypaws/inkbunny/graphs/contributors">
-    <img alt="Fission contributors" src="https://img.shields.io/github/contributors/ellypaws/inkbunny">
+    <img alt="Inkbunny API contributors" src="https://img.shields.io/github/contributors/ellypaws/inkbunny">
   </a>
   <a href="https://github.com/ellypaws/inkbunny/commits/main">
     <img alt="Commit Activity" src="https://img.shields.io/github/commit-activity/m/ellypaws/inkbunny">
