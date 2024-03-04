@@ -89,7 +89,15 @@ func optIn(b bool) string {
 	return "no"
 }
 
-func (user Credentials) changeRating(rating Ratings) error {
+// ChangeRating allows guest users to change their rating settings
+//   - If you use this script to change rating settings for a logged in registered member,
+//     it will affect the current session only.
+//     The changes to their allowed ratings will not be saved to their account.
+//   - Members can still choose to block their work from Guest users, regardless of the Guests' rating choice, so some work may still not appear for Guests even with all rating options turned on.
+//   - New Guest sessions and newly created accounts have the tag “Violence - Mild violence” enabled by default, so images tagged with this will be visible.
+//     However, when calling this script, that tag will be set to “off”
+//     unless you explicitly keep it activated with the parameter Ratings{MildViolence: true}.
+func (user Credentials) ChangeRating(rating Ratings) error {
 	resp, err := user.PostForm(apiURL("userrating"), url.Values{
 		"sid":    {user.Sid},
 		"tag[2]": {optIn(rating.Nudity)},

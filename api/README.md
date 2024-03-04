@@ -72,19 +72,20 @@ a [guest](https://wiki.inkbunny.net/wiki/API#Quick_Start_Guide):
 package main
 
 import (
-	"fmt"
-	"github.com/ellypaws/inkbunny/api"
+  "github.com/ellypaws/inkbunny/api"
+  "log"
 )
 
 func main() {
-	user, err := api.Guest().Login()
-	if err != nil {
-		fmt.Printf("Error logging in: %v", err)
-		return
-	}
+  user, err := api.Guest().Login()
+  if err != nil {
+    log.Printf("Error logging in: %v", err)
+    return
+  }
 
-	fmt.Printf("Logged in with session ID: %s", user.Sid)
+  log.Printf("Logged in with session ID: %s", user.Sid)
 }
+
 ```
 
 You can login with your own credentials by creating a `Credentials` object and calling the `Login` method.
@@ -96,30 +97,31 @@ You can use environment variables or term `"golang.org/x/term"` to input your cr
 package main
 
 import (
-	"fmt"
-	"github.com/ellypaws/inkbunny/api"
+  "fmt"
+  "github.com/ellypaws/inkbunny/api"
+  "log"
 )
 
 func main() {
-	user := &api.Credentials{
-		Username: "your_username",
-		Password: "your_password",
-	}
+  user := &api.Credentials{
+    Username: "your_username",
+    Password: "your_password",
+  }
 
-	user, err := user.Login()
-	if err != nil {
-		fmt.Printf("Error logging in: %v", err)
-		return
-	}
+  user, err := user.Login()
+  if err != nil {
+    log.Printf("Error logging in: %v", err)
+    return
+  }
 
-	fmt.Printf("Logged in with session ID: %s", user.Sid)
+  log.Printf("Logged in with session ID: %s", user.Sid)
 
-	if err := user.Logout(); err != nil {
-		fmt.Printf("Error logging out: %v", err)
-		return
-	}
+  if err := user.Logout(); err != nil {
+    log.Printf("Error logging out: %v", err)
+    return
+  }
 
-	fmt.Println("Logged out")
+  fmt.Println("Logged out")
 }
 ```
 
@@ -128,10 +130,25 @@ Because the API uses "yes" or "no" to represent boolean values, use `api.Yes` an
 ```go
 package main
 
-import "github.com/ellypaws/inkbunny/api"
+import (
+  "github.com/ellypaws/inkbunny/api"
+  "log"
+)
 
 func main() {
-  user, _ := api.Guest().Login()
+  user, err := api.Guest().Login()
+  if err != nil {
+    log.Fatalf("Error logging in: %v", err)
+  }
+
+  if err := user.ChangeRating(api.Ratings{
+    General:      api.Yes,
+    Nudity:       api.No,
+    MildViolence: api.Yes,
+  }); err != nil {
+    log.Fatalf("Error changing rating: %v", err)
+  }
+
   user.SubmissionDetails(
     api.SubmissionDetailsRequest{
       SubmissionIDs:   "your submission IDs here",
