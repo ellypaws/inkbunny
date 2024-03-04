@@ -173,7 +173,6 @@ The application provides several API methods to interact with the platform:
 | `(user Credentials) Post(url *url.URL, contentType string, body io.Reader) (*http.Response, error)`     | Sends a POST request to the specified URL.                |
 | `(user Credentials) PostForm(url *url.URL, values url.Values) (*http.Response, error)`                  | Sends a POST request with form data to the specified URL. |
 | `(user Credentials) GetWatching() ([]UsernameID, error)`                                                | Retrieves the user's watchlist. (users you're watching)   |
-| `(user Credentials) GetWatchedBy(username string) ([]WatchInfo, error)`                                 | Retrieves the user's watchers. (users watching you)       |
 | `(user Credentials) SubmissionDetails(req SubmissionDetailsRequest) (SubmissionDetailsResponse, error)` | Retrieves the details of a submission.                    |
 | `(user Credentials) SubmissionFavorites(req SubmissionRequest) (SubmissionFavoritesResponse, error)`    | Retrieves the favorites of a submission.                  |
 | `(user Credentials) SearchSubmissions(req SearchRequest) (SearchResponse, error)`                       | Searches for submissions.                                 |
