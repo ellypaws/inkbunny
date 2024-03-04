@@ -74,6 +74,10 @@ func (user *Credentials) Logout() error {
 		return fmt.Errorf("logout failed, response: %s", logoutResp.Logout)
 	}
 
+	if logoutResp.Sid != user.Sid {
+		return fmt.Errorf("session ID changed after logout, expected: [%s], got: [%s]", user.Sid, logoutResp.Sid)
+	}
+
 	*user = Credentials{}
 	return nil
 }
