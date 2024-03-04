@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/ellypaws/inkbunny/api/utils"
 	"github.com/sahilm/fuzzy"
 	"io"
 	"net/http"
@@ -82,13 +83,6 @@ func findMutual(a, b []string) []string {
 	return mutual
 }
 
-func optIn(b bool) string {
-	if b {
-		return "yes"
-	}
-	return "no"
-}
-
 // ChangeRating allows guest users to change their rating settings
 //   - If you use this script to change rating settings for a logged in registered member,
 //     it will affect the current session only.
@@ -98,13 +92,9 @@ func optIn(b bool) string {
 //     However, when calling this script, that tag will be set to “off”
 //     unless you explicitly keep it activated with the parameter Ratings{MildViolence: true}.
 func (user Credentials) ChangeRating(rating Ratings) error {
-	resp, err := user.PostForm(apiURL("userrating"), url.Values{
-		"sid":    {user.Sid},
-		"tag[2]": {optIn(rating.Nudity)},
-		"tag[3]": {optIn(rating.MildViolence)},
-		"tag[4]": {optIn(rating.Sexual)},
-		"tag[5]": {optIn(rating.StrongViolence)},
-	})
+	user.Ratings = rating
+	val := utils.StructToUrlValues(user)
+	resp, err := user.PostForm(apiURL("userrating"), val)
 	if err != nil {
 		return err
 	}
