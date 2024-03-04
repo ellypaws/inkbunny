@@ -32,7 +32,7 @@
 
 --------------
 
-<p align="right">Disclaimer: This project is not affiliated or endorsed by Inkbunny.</p>
+<p align="right"><i>Disclaimer: This project is not affiliated or endorsed by Inkbunny.</i></p>
 
 Inkbunny API is a Go package that provides a simple way to interact with the Inkbunny API. It allows you to log in, log
 out, and make requests to the Inkbunny API.
@@ -46,6 +46,7 @@ Table of Contents
 - [Table of Contents](#table-of-contents)
     - [Installation](#installation)
     - [API Methods](#api-methods)
+    - [Usage](#usage)
     - [Learn More](#learn-more)
     - [Contributing](#contributing)
 
@@ -60,6 +61,84 @@ Once you have Go installed, you can get the package by running the following com
 
 ```bash
 go get github.com/ellypaws/inkbunny/api
+```
+
+## Usage
+
+Here's a simple example of how to use the Inkbunny API package logging in as
+a [guest](https://wiki.inkbunny.net/wiki/API#Quick_Start_Guide):
+
+```go
+package main
+
+import (
+	"fmt"
+	"github.com/ellypaws/inkbunny/api"
+)
+
+func main() {
+	user, err := api.Guest().Login()
+	if err != nil {
+		fmt.Printf("Error logging in: %v", err)
+		return
+	}
+
+	fmt.Printf("Logged in with session ID: %s", user.Sid)
+}
+```
+
+You can login with your own credentials by creating a `Credentials` object and calling the `Login` method.
+Note that the password gets destroyed after the login request is made.
+Important: Do not hardcode your credentials in your code.
+You can use environment variables or term `"golang.org/x/term"` to input your credentials.
+
+```go
+package main
+
+import (
+	"fmt"
+	"github.com/ellypaws/inkbunny/api"
+)
+
+func main() {
+	user := &api.Credentials{
+		Username: "your_username",
+		Password: "your_password",
+	}
+
+	user, err := user.Login()
+	if err != nil {
+		fmt.Printf("Error logging in: %v", err)
+		return
+	}
+
+	fmt.Printf("Logged in with session ID: %s", user.Sid)
+
+	if err := user.Logout(); err != nil {
+		fmt.Printf("Error logging out: %v", err)
+		return
+	}
+
+	fmt.Println("Logged out")
+}
+```
+
+Because the API uses "yes" or "no" to represent boolean values, use `api.Yes` and `api.No` to represent these values.
+
+```go
+package main
+
+import "github.com/ellypaws/inkbunny/api"
+
+func main() {
+  user, _ := api.Guest().Login()
+  user.SubmissionDetails(
+    api.SubmissionDetailsRequest{
+      SubmissionIDs:   "your submission IDs here",
+      ShowDescription: api.Yes,
+    },
+  )
+}
 ```
 
 ## API Methods
