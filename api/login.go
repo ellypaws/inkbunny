@@ -14,6 +14,10 @@ var (
 	ErrNotLoggedIn   = errors.New("not logged in")
 )
 
+func Guest() *Credentials {
+	return &Credentials{Username: "guest"}
+}
+
 func (user *Credentials) Login() (*Credentials, error) {
 	if user == nil {
 		return nil, ErrNilUser
