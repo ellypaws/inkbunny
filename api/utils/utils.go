@@ -1,10 +1,12 @@
 package utils
 
 import (
+	"fmt"
 	"log"
 	"net/url"
 	"reflect"
 	"slices"
+	"strings"
 	"time"
 )
 
@@ -17,32 +19,82 @@ import (
 //		Field2 string `json:"field2"`
 //	}
 func StructToUrlValues(s any) url.Values {
-	var urlValues = make(url.Values)
+	return structToUrlValuesRecursive(s, make(url.Values))
+}
+
+func structToUrlValuesRecursive(s any, urlValues url.Values) url.Values {
 	v := reflect.ValueOf(s)
+	// If the passed interface is a pointer, get the value it points to
+	if v.Kind() == reflect.Ptr {
+		v = v.Elem()
+	}
 	t := v.Type()
+
 	for i := 0; i < v.NumField(); i++ {
 		field := t.Field(i)
 		value := v.Field(i)
-		if field.Tag.Get("json") == "" {
-			continue
-		}
-		if field.Tag.Get("json") == "omitempty" && value.String() == "" {
+		tag := field.Tag.Get("json")
+
+		if tag == "" {
 			continue
 		}
 
-		// if boolean, use "yes" or "no"
-		switch value.Kind() {
-		case reflect.Bool:
-			if value.Bool() {
-				urlValues.Add(field.Tag.Get("json"), "yes")
-			} else {
-				urlValues.Add(field.Tag.Get("json"), "no")
+		// Handle embedded or nested structs
+		if value.Kind() == reflect.Struct && field.Anonymous {
+			structToUrlValuesRecursive(value.Interface(), urlValues)
+			continue
+		} else if value.Kind() == reflect.Struct {
+			structToUrlValuesRecursive(value.Interface(), urlValues)
+			continue
+		}
+
+		// Omit empty fields if "omitempty" is specified
+		tagParts := strings.Split(tag, ",")
+		if len(tagParts) > 1 && tagParts[1] == "omitempty" && isEmptyValue(value) {
+			continue
+		}
+
+		if tagParts[0] == "-" {
+			continue
+		}
+
+		// Use fmt.Stringer interface if implemented
+		if stringer, ok := value.Interface().(fmt.Stringer); ok {
+			urlValues.Add(tagParts[0], stringer.String())
+		} else {
+			switch value.Kind() {
+			case reflect.Bool:
+				if value.Bool() {
+					urlValues.Add(tagParts[0], "yes")
+				} else {
+					urlValues.Add(tagParts[0], "no")
+				}
+			default:
+				urlValues.Add(tagParts[0], fmt.Sprintf("%v", value.Interface()))
 			}
-		default:
-			urlValues.Add(field.Tag.Get("json"), value.String())
 		}
 	}
 	return urlValues
+}
+
+// Helper function to check if a value is considered empty
+func isEmptyValue(v reflect.Value) bool {
+	switch v.Kind() {
+	case reflect.Array, reflect.Map, reflect.Slice, reflect.String:
+		return v.Len() == 0
+	case reflect.Bool:
+		return !v.Bool()
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		return v.Int() == 0
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
+		return v.Uint() == 0
+	case reflect.Float32, reflect.Float64:
+		return v.Float() == 0
+	case reflect.Interface, reflect.Ptr:
+		return v.IsNil()
+	default:
+		return false
+	}
 }
 
 type WatchInfo struct {
