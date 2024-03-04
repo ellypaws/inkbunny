@@ -3,10 +3,13 @@ module github.com/ellypaws/inkbunny
 go 1.22
 
 require (
+	github.com/PuerkitoBio/goquery v1.9.1
 	github.com/charmbracelet/bubbles v0.18.0
 	github.com/charmbracelet/bubbletea v0.25.0
 	github.com/charmbracelet/lipgloss v0.9.1
-	golang.org/x/term v0.17.0
+	github.com/ellypaws/inkbunny/api v0.0.0-20240304212245-632a129f4951
+	golang.org/x/net v0.22.0
+	golang.org/x/term v0.18.0
 )
 
 require (
@@ -23,7 +26,8 @@ require (
 	github.com/muesli/reflow v0.3.0 // indirect
 	github.com/muesli/termenv v0.15.2 // indirect
 	github.com/rivo/uniseg v0.4.6 // indirect
+	github.com/sahilm/fuzzy v0.1.1 // indirect
 	golang.org/x/sync v0.1.0 // indirect
-	golang.org/x/sys v0.17.0 // indirect
+	golang.org/x/sys v0.18.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
 )
