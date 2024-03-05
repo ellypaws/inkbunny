@@ -41,6 +41,7 @@ func (user *Credentials) Login() (*Credentials, error) {
 	var respLog struct {
 		Credentials
 		RatingsMask string `json:"ratingsmask"`
+		UserID      any    `json:"userid,omitempty"` // temporary override to handle string or number from api
 	}
 	if err = json.Unmarshal(body, &respLog); err != nil {
 		return nil, fmt.Errorf("error parsing response: %w", err)
@@ -48,6 +49,18 @@ func (user *Credentials) Login() (*Credentials, error) {
 
 	if respLog.Sid == "" {
 		return nil, fmt.Errorf("sid is empty, response: %s", body)
+	}
+	if respLog.UserID != nil {
+		switch id := respLog.UserID.(type) {
+		case string:
+			user.UserID = id
+		case float64:
+			user.UserID = fmt.Sprintf("%v", id)
+		case int:
+			user.UserID = fmt.Sprintf("%d", id)
+		default:
+			user.UserID = fmt.Sprintf("%v", respLog.UserID)
+		}
 	}
 
 	user.Sid = respLog.Sid
