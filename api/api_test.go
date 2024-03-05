@@ -23,7 +23,6 @@ func TestApiURL(t *testing.T) {
 
 func TestApiWithStruct(t *testing.T) {
 	user := Credentials{Sid: "sid", Username: "username", Ratings: Ratings{
-		RatingsMask:    "",
 		General:        false,
 		Nudity:         false,
 		MildViolence:   false,
@@ -41,6 +40,14 @@ func TestCredentials_ChangeRating(t *testing.T) {
 	user, err := Guest().Login()
 	if err != nil {
 		t.Errorf("Expected no error, got %s", err)
+	}
+
+	if user == nil {
+		t.Fatalf("Expected user to not be nil, got nil")
+	}
+
+	if user.Sid == "" {
+		t.Errorf("Expected sid to not be empty, got empty")
 	}
 
 	testUser := user
@@ -79,5 +86,5 @@ func TestCredentials_ChangeRating(t *testing.T) {
 		t.Errorf("Expected 1101, got %s", user.Ratings.String())
 	}
 
-	t.Logf("Ratings mask: %s", user.Ratings.String())
+	t.Logf("Ratings mask correctly set to %s", user.Ratings.String())
 }

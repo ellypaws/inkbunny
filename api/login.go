@@ -38,11 +38,20 @@ func (user *Credentials) Login() (*Credentials, error) {
 		return nil, fmt.Errorf("error reading response: %w", err)
 	}
 
-	if err = json.Unmarshal(body, user); err != nil {
+	var respLog struct {
+		Credentials
+		RatingsMask string `json:"ratingsmask"`
+	}
+	if err = json.Unmarshal(body, &respLog); err != nil {
 		return nil, fmt.Errorf("error parsing response: %w", err)
 	}
 
-	user.Ratings.parseMask()
+	if respLog.Sid == "" {
+		return nil, fmt.Errorf("sid is empty, response: %s", body)
+	}
+
+	user.Sid = respLog.Sid
+	user.Ratings = parseMask(respLog.RatingsMask)
 
 	return user, nil
 }

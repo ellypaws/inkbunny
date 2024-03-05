@@ -120,7 +120,6 @@ type Ratings struct {
 	// RatingsMask - Binary string representation of the users Allowed Ratings choice. The bits are in this order left-to-right:
 	// Eg: A string 11100 means only items rated General, Nudity and Violence are allowed, but Sex and Strong Violence are blocked.
 	// A string 11111 means items of any rating would be shown. Only 'left-most significant bits' are returned. So 11010 and 1101 are the same, and 10000 and 1 are the same.
-	RatingsMask    string    `json:"-"`
 	General        BooleanYN `json:"tag[1],omitempty"` // Show images with Rating tag: General - Suitable for all ages.
 	Nudity         BooleanYN `json:"tag[2],omitempty"` // Show images with Rating tag: Nudity - Nonsexual nudity exposing breasts or genitals (must not show arousal).
 	MildViolence   BooleanYN `json:"tag[3],omitempty"` // Show images with Rating tag: MildViolence - Mild violence.
@@ -128,17 +127,18 @@ type Ratings struct {
 	StrongViolence BooleanYN `json:"tag[5],omitempty"` // Show images with Rating tag: StrongViolence - Strong violence, blood, serious injury or death.
 }
 
-// parseMask sets the Ratings boolean fields based on the RatingsMask field. True is 1, false is 0
+// parseMask returns a Ratings based on a ratings bitmask. True is 1, false is 0
 //
 //	"11010" would set Ratings{General: true, Nudity: true, MildViolence: false, Sexual: true, StrongViolence: false}
-func (ratings *Ratings) parseMask() {
+func parseMask(ratingsMask string) Ratings {
 	// RatingsMask - Binary string representation of the users Allowed Ratings choice. The bits are in this order left-to-right:
 	// Eg: A string 11100 means only items rated General, Nudity and Violence are allowed, but Sex and Strong Violence are blocked.
 	// A string 11111 means items of any rating would be shown. Only 'left-most significant bits' are returned. So 11010 and 1101 are the same, and 10000 and 1 are the same.
 	set := func(r int32) BooleanYN {
 		return r == '1'
 	}
-	for i, rating := range ratings.RatingsMask {
+	var ratings Ratings
+	for i, rating := range ratingsMask {
 		switch i {
 		case 0:
 			ratings.General = set(rating)
@@ -152,21 +152,22 @@ func (ratings *Ratings) parseMask() {
 			ratings.StrongViolence = set(rating)
 		}
 	}
+	return ratings
 }
 
-// parseBooleans sets the RatingsMask field based on the boolean values of the Ratings struct.
+// parseBooleans returns a ratings bitmask based on the boolean values of the Ratings struct.
 //
 //	Ratings{General: true, Nudity: true, MildViolence: false, Sexual: true, StrongViolence: false}
 //	would return "1101"
 //
-// RatingsMask is a binary string representation of the users Allowed Ratings choice.
+// A ratings bitmask is a binary string representation of the users Allowed Ratings choice.
 // A string 11100 means only keywords rated General,
 // Nudity and Violence are allowed, but Sex and Strong Violence are blocked.
 // String 11111 means keywords of any rating would be shown.
 // Only 'left-most significant bits' need to be sent.
 // So 11010 and 1101 are the same, and 10000 and 1 are the same.
-func (ratings *Ratings) parseBooleans() {
-	ratings.RatingsMask = fmt.Sprintf("%d%d%d%d%d",
+func (ratings Ratings) parseBooleans() string {
+	ratingsMask := fmt.Sprintf("%d%d%d%d%d",
 		ratings.General.Int(),
 		ratings.Nudity.Int(),
 		ratings.MildViolence.Int(),
@@ -174,12 +175,11 @@ func (ratings *Ratings) parseBooleans() {
 		ratings.StrongViolence.Int(),
 	)
 
-	ratings.RatingsMask = strings.TrimRight(ratings.RatingsMask, "0")
+	return strings.TrimRight(ratingsMask, "0")
 }
 
-func (r Ratings) String() string {
-	r.parseBooleans()
-	return r.RatingsMask
+func (ratings Ratings) String() string {
+	return ratings.parseBooleans()
 }
 
 type LogoutResponse struct {
