@@ -175,22 +175,24 @@ type SubmissionDetailsResponse struct {
 	Submissions  []Submission `json:"submissions"`
 }
 
+type SubmissionType int
+
 const (
-	SubmissionTypes = iota
-	SubmissionTypePicturePinup
-	SubmissionTypeSketch
-	SubmissionTypePictureSeries
-	SubmissionTypeComic
-	SubmissionTypePortfolio
-	SubmissionTypeShockwaveFlashAnimation
-	SubmissionTypeShockwaveFlashInteractive
-	SubmissionTypeVideoFeatureLength
-	SubmissionTypeVideoAnimation3DCGI
-	SubmissionTypeMusicSingleTrack
-	SubmissionTypeMusicAlbum
-	SubmissionTypeWritingDocument
-	SubmissionTypeCharacterSheet
-	SubmissionTypePhotography
+	SubmissionTypes                         SubmissionType = iota
+	SubmissionTypePicturePinup              SubmissionType = iota //1 - Picture/Pinup
+	SubmissionTypeSketch                    SubmissionType = iota //2 - Sketch
+	SubmissionTypePictureSeries             SubmissionType = iota //3 - Picture Series
+	SubmissionTypeComic                     SubmissionType = iota //4 - Comic
+	SubmissionTypePortfolio                 SubmissionType = iota //5 - Portfolio
+	SubmissionTypeShockwaveFlashAnimation   SubmissionType = iota //6 - Shockwave/Flash - Animation
+	SubmissionTypeShockwaveFlashInteractive SubmissionType = iota //7 - Shockwave/Flash - Interactive
+	SubmissionTypeVideoFeatureLength        SubmissionType = iota //8 - Video - Feature Length
+	SubmissionTypeVideoAnimation3DCGI       SubmissionType = iota //9 - Video - Animation/3D/CGI
+	SubmissionTypeMusicSingleTrack          SubmissionType = iota //10 - Music - Single Track
+	SubmissionTypeMusicAlbum                SubmissionType = iota //11 - Music - Album
+	SubmissionTypeWritingDocument           SubmissionType = iota //12 - Writing - Document
+	SubmissionTypeCharacterSheet            SubmissionType = iota //13 - Character Sheet
+	SubmissionTypePhotography               SubmissionType = iota //14 - Photography - Fursuit/Sculpture/Jewelry/etc
 )
 
 func (user Credentials) SubmissionDetails(req SubmissionDetailsRequest) (SubmissionDetailsResponse, error) {

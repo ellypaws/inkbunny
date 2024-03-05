@@ -145,3 +145,10 @@ func (i PriceString) String() string {
 func (i PriceString) Float() float64 {
 	return float64(i)
 }
+
+type JoinType string
+
+const (
+	And JoinType = "and"
+	Or  JoinType = "or"
+)
