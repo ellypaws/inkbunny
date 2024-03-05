@@ -1,9 +1,14 @@
 package api
 
-import "testing"
+import (
+	"github.com/ellypaws/inkbunny/api/utils"
+	"testing"
+)
 
 func TestCredentials_SubmissionDetails(t *testing.T) {
-	user, err := Guest().Login()
+	guest := Guest()
+	t.Logf("Logging in as guest: %v", ApiUrl("login", utils.StructToUrlValues(guest)))
+	user, err := guest.Login()
 	if err != nil {
 		t.Errorf("Expected no error, got %s", err)
 	}
@@ -16,10 +21,13 @@ func TestCredentials_SubmissionDetails(t *testing.T) {
 		t.Errorf("Expected sid to not be empty, got empty")
 	}
 
-	details, err := user.SubmissionDetails(SubmissionDetailsRequest{
+	request := SubmissionDetailsRequest{
+		SID:             user.Sid,
 		SubmissionIDs:   "14576",
 		ShowDescription: Yes,
-	})
+	}
+	t.Logf("Getting submission details: %v", ApiUrl("submissions", utils.StructToUrlValues(request)))
+	details, err := user.SubmissionDetails(request)
 	if err != nil {
 		t.Errorf("Expected no error, got %s", err)
 	}

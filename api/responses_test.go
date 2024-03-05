@@ -16,22 +16,29 @@ func TestRatings_String(t *testing.T) {
 		StrongViolence: false,
 	}
 
+	t.Logf("Testing Ratings.String: %#v", r)
+
 	if r.String() != "1101" {
-		t.Errorf("Expected 1101, got %s", r.String())
+		t.Fatalf("Expected 1101, got %s", r.String())
 	}
+
+	t.Logf("Output: %s", r.String())
 }
 
 func TestRatings(t *testing.T) {
-	r := Ratings{
+	r := "1101"
+
+	t.Logf("Testing binary bitmask: %s", r)
+
+	expected := Ratings{
 		General:        true,
 		Nudity:         true,
 		MildViolence:   false,
 		Sexual:         true,
 		StrongViolence: false,
 	}
-
-	if r.String() != "1101" {
-		t.Errorf("Expected 1101, got %s", r.String())
+	if parseMask(r) != expected {
+		t.Errorf("Expected %+v, got %+v", expected, parseMask(r))
 	}
 }
 

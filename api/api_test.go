@@ -12,6 +12,8 @@ func TestInkbunnyURL(t *testing.T) {
 	if url.String() != "https://inkbunny.net/path?key=value" {
 		t.Errorf("Expected https://inkbunny.net/path?key=value, got %s", url.String())
 	}
+
+	t.Logf("Inkbunny URL: %s", url.String())
 }
 
 func TestApiURL(t *testing.T) {
@@ -19,6 +21,8 @@ func TestApiURL(t *testing.T) {
 	if url.String() != "https://inkbunny.net/api_path.php?key=value" {
 		t.Errorf("Expected https://inkbunny.net/api_path.php?key=value, got %s", url.String())
 	}
+
+	t.Logf("API URL: %s", url.String())
 }
 
 func TestApiWithStruct(t *testing.T) {
@@ -34,10 +38,14 @@ func TestApiWithStruct(t *testing.T) {
 	if url.String() != "https://inkbunny.net/api_path.php?sid=sid&username=username" {
 		t.Errorf("Expected https://inkbunny.net/api_path.php?sid=sid&username=username, got %s", url.String())
 	}
+
+	t.Logf("API URL with struct: %s", url.String())
 }
 
 func TestCredentials_ChangeRating(t *testing.T) {
-	user, err := Guest().Login()
+	guest := Guest()
+	t.Logf("Logging in as guest: %v", ApiUrl("login", utils.StructToUrlValues(guest)))
+	user, err := guest.Login()
 	if err != nil {
 		t.Errorf("Expected no error, got %s", err)
 	}
@@ -67,19 +75,21 @@ func TestCredentials_ChangeRating(t *testing.T) {
 		t.Errorf("Expected values to contain tag[1]=yes&tag[2]=yes&tag[4]=yes&username=guest, got %s", v)
 	}
 
-	err = user.ChangeRating(Ratings{
+	ratings := Ratings{
 		General:        true,
 		Nudity:         true,
 		MildViolence:   false,
 		Sexual:         true,
 		StrongViolence: false,
-	})
+	}
+	t.Logf("Changing ratings: %v", ApiUrl("userrating", utils.StructToUrlValues(ratings), url.Values{"sid": {user.Sid}}))
+	err = user.ChangeRating(ratings)
 	if err != nil {
 		t.Errorf("Expected no error, got %s", err)
 	}
 
-	if user.Ratings.General != true {
-		t.Errorf("Expected true, got %t", user.Ratings.General)
+	if user.Ratings != ratings {
+		t.Errorf("Expected ratings to be %+v, got %+v", ratings, user.Ratings)
 	}
 
 	if user.Ratings.String() != "1101" {

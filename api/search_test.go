@@ -1,11 +1,14 @@
 package api
 
 import (
+	"github.com/ellypaws/inkbunny/api/utils"
 	"testing"
 )
 
 func TestCredentials_SearchSubmissions(t *testing.T) {
-	user, err := Guest().Login()
+	guest := Guest()
+	t.Logf("Logging in as guest: %v", ApiUrl("login", utils.StructToUrlValues(guest)))
+	user, err := guest.Login()
 	if err != nil {
 		t.Errorf("Expected no error, got %s", err)
 	}
@@ -18,10 +21,13 @@ func TestCredentials_SearchSubmissions(t *testing.T) {
 		t.Errorf("Expected sid to not be empty, got empty")
 	}
 
-	searchResponse, err := user.SearchSubmissions(SubmissionSearchRequest{
+	request := SubmissionSearchRequest{
+		SID:   user.Sid,
 		Text:  "Inkbunny Logo (Mascot Only)",
 		Title: Yes,
-	})
+	}
+	t.Logf("Searching for submissions: %v", ApiUrl("search", utils.StructToUrlValues(request)))
+	searchResponse, err := user.SearchSubmissions(request)
 	if err != nil {
 		t.Errorf("Expected no error, got %s", err)
 	}
@@ -44,7 +50,9 @@ func TestCredentials_SearchSubmissions(t *testing.T) {
 }
 
 func TestCredentials_SearchSubmissionsRandom(t *testing.T) {
-	user, err := Guest().Login()
+	guest := Guest()
+	t.Logf("Logging in as guest: %v", ApiUrl("login", utils.StructToUrlValues(guest)))
+	user, err := guest.Login()
 	if err != nil {
 		t.Errorf("Expected no error, got %s", err)
 	}

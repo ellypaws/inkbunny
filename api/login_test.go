@@ -1,9 +1,14 @@
 package api
 
-import "testing"
+import (
+	"github.com/ellypaws/inkbunny/api/utils"
+	"testing"
+)
 
 func TestGuest(t *testing.T) {
-	user, err := Guest().Login()
+	guest := Guest()
+	t.Logf("Logging in as guest: %v", ApiUrl("login", utils.StructToUrlValues(guest)))
+	user, err := guest.Login()
 	if err != nil {
 		t.Errorf("Expected no error, got %s", err)
 	}
@@ -23,6 +28,7 @@ func TestGuest(t *testing.T) {
 
 func TestCredentials_Login(t *testing.T) {
 	user := &Credentials{Username: "guest"}
+	t.Logf("Logging in as guest: %v", ApiUrl("login", utils.StructToUrlValues(user)))
 	user, err := user.Login()
 	if err != nil {
 		t.Errorf("Expected no error, got %s", err)
@@ -42,12 +48,15 @@ func TestCredentials_Login(t *testing.T) {
 }
 
 func TestCredentials_Logout(t *testing.T) {
-	user, err := Guest().Login()
+	guest := Guest()
+	t.Logf("Logging in as guest: %v", ApiUrl("login", utils.StructToUrlValues(guest)))
+	user, err := guest.Login()
 	if err != nil {
 		t.Fatalf("Expected no error, got %s", err)
 	}
 	t.Logf("Logged in as %s, sid: %s\n", user.Username, user.Sid)
 
+	t.Logf("Logging out: %v", ApiUrl("logout", utils.StructToUrlValues(user)))
 	err = user.Logout()
 	if err != nil {
 		t.Errorf("Expected no error, got %s", err)
