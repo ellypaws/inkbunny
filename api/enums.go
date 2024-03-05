@@ -107,6 +107,9 @@ func (i *IntString) UnmarshalJSON(data []byte) error {
 	if len(data) == 0 {
 		return nil
 	}
+	if string(data) == "null" {
+		return nil
+	}
 	atoi, err := strconv.Atoi(strings.ReplaceAll(string(data), `"`, ""))
 	if err != nil {
 		return fmt.Errorf(`failed to convert data %s to int: %w`, data, err)
