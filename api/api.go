@@ -19,9 +19,12 @@ func InkbunnyUrl(path string, values ...url.Values) *url.URL {
 		Host:   "inkbunny.net",
 		Path:   path,
 	}
-	for i := range values {
-		request.RawQuery = values[i].Encode()
+
+	var valueStrings []string
+	for _, value := range values {
+		valueStrings = append(valueStrings, value.Encode())
 	}
+	request.RawQuery = strings.Join(valueStrings, "&")
 
 	return request
 }
