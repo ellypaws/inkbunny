@@ -16,8 +16,8 @@ func TestGuest(t *testing.T) {
 		t.Errorf("Expected sid to be non-empty, got empty")
 	}
 
-	if user.Ratings.String() != "" {
-		t.Errorf("Expected empty, got %s", user.Ratings.String())
+	if user.Ratings.String() != "101" {
+		t.Errorf("Expected 101, got %s", user.Ratings.String())
 	}
 }
 
@@ -36,8 +36,8 @@ func TestCredentials_Login(t *testing.T) {
 		t.Errorf("Expected sid to be non-empty, got empty")
 	}
 
-	if user.Ratings.String() != "" {
-		t.Errorf("Expected empty, got %s", user.Ratings.String())
+	if user.Ratings.String() != "101" {
+		t.Errorf("Expected 101, got %s", user.Ratings.String())
 	}
 }
 
