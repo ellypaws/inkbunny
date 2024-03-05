@@ -92,6 +92,10 @@ func (b BooleanYN) Int() int {
 	return 0
 }
 
+func (b BooleanYN) Bool() bool {
+	return bool(b)
+}
+
 // IntString is a custom type to handle int values marshaled as strings. Typically only returned by responses.
 type IntString int
 
