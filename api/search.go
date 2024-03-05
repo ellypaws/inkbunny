@@ -11,9 +11,9 @@ type SubmissionSearchRequest struct {
 	SID                string     `json:"sid"`
 	OutputMode         OutputMode `json:"output_mode,omitempty"`
 	RID                string     `json:"rid,omitempty"`
-	SubmissionIDsOnly  string     `json:"submission_ids_only,omitempty"`
+	SubmissionIDsOnly  BooleanYN  `json:"submission_ids_only,omitempty"`
 	SubmissionsPerPage IntString  `json:"submissions_per_page,omitempty"`
-	Page               IntString  `json:"page,omitempty"`
+	Page               IntString  `json:"page,omitempty"` // Results page number to return. Default: 1.
 	// Not to be confused with Text. This is a boolean value to return list of Top 100 Keywords.
 	// Return list of Top 100 Keywords associated with all submissions on current results page.
 	// Note that this list includes both officially assigned keywords and also keywords
@@ -58,7 +58,7 @@ type SubmissionSearchRequest struct {
 	CountLimit IntString `json:"count_limit,omitempty"`
 }
 
-type SearchResponse struct {
+type SubmissionSearchResponse struct {
 	Sid                  string    `json:"sid"`
 	UserLocation         string    `json:"user_location"`
 	ResultsCountAll      IntString `json:"results_count_all"`
@@ -82,9 +82,9 @@ type SearchResponse struct {
 	} `json:"submissions,omitempty"`
 }
 
-func (user Credentials) SearchSubmissions(req SubmissionSearchRequest) (SearchResponse, error) {
+func (user Credentials) SearchSubmissions(req SubmissionSearchRequest) (SubmissionSearchResponse, error) {
 	if !user.LoggedIn() {
-		return SearchResponse{}, ErrNotLoggedIn
+		return SubmissionSearchResponse{}, ErrNotLoggedIn
 	}
 	if req.SID == "" {
 		req.SID = user.Sid
@@ -93,30 +93,30 @@ func (user Credentials) SearchSubmissions(req SubmissionSearchRequest) (SearchRe
 	resp, err := user.Get(ApiUrl("search", utils.StructToUrlValues(req)))
 
 	if err != nil {
-		return SearchResponse{}, err
+		return SubmissionSearchResponse{}, err
 	}
 	defer resp.Body.Close()
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return SearchResponse{}, err
+		return SubmissionSearchResponse{}, err
 	}
 
 	if err := CheckError(body); err != nil {
-		return SearchResponse{}, fmt.Errorf("error searching submissions: %w", err)
+		return SubmissionSearchResponse{}, fmt.Errorf("error searching submissions: %w", err)
 	}
 
-	var searchResp SearchResponse
+	var searchResp SubmissionSearchResponse
 	if err := json.Unmarshal(body, &searchResp); err != nil {
-		return SearchResponse{}, err
+		return SubmissionSearchResponse{}, err
 	}
 
 	return searchResp, nil
 }
 
-func (user Credentials) OwnSubmissions() (SearchResponse, error) {
+func (user Credentials) OwnSubmissions() (SubmissionSearchResponse, error) {
 	return user.SearchSubmissions(SubmissionSearchRequest{SID: user.Sid, Username: user.Username})
 }
 
-func (user Credentials) UserSubmissions(username string) (SearchResponse, error) {
+func (user Credentials) UserSubmissions(username string) (SubmissionSearchResponse, error) {
 	return user.SearchSubmissions(SubmissionSearchRequest{SID: user.Sid, Username: username})
 }
