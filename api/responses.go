@@ -208,18 +208,3 @@ type Autocomplete struct {
 	SingleWord string `json:"singleword"`
 	SearchTerm string `json:"searchterm"`
 }
-
-func (u UsernameAutocomplete) String(i int) string {
-	return u.Results[i].Value
-}
-
-func (u UsernameAutocomplete) Len() int {
-	return len(u.Results)
-}
-
-type KeywordAutocomplete struct {
-	Results []struct {
-		Autocomplete
-		SubmissionsCount int `json:"submissions_count"`
-	} `json:"results"`
-}
