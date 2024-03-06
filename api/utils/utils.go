@@ -30,6 +30,11 @@ func structToUrlValuesRecursive(s any, urlValues url.Values) url.Values {
 	}
 	t := v.Type()
 
+	// Check if the value is a struct; return immediately if not
+	if v.Kind() != reflect.Struct {
+		return urlValues
+	}
+
 	for i := 0; i < v.NumField(); i++ {
 		field := t.Field(i)
 		value := v.Field(i)

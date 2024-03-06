@@ -93,10 +93,10 @@ func findMutual(a, b []string) []string {
 //   - New Guest sessions and newly created accounts have the tag “Violence - Mild violence” enabled by default, so images tagged with this will be visible.
 //     However, when calling this script, that tag will be set to “off”
 //     unless you explicitly keep it activated with the parameter Ratings{MildViolence: true}.
-func (user Credentials) ChangeRating(rating Ratings) error {
-	user.Ratings = rating
-	val := utils.StructToUrlValues(user)
-	resp, err := user.PostForm(ApiUrl("userrating"), val)
+func (user *Credentials) ChangeRating(ratings Ratings) error {
+	values := utils.StructToUrlValues(ratings)
+	values.Set("sid", user.Sid)
+	resp, err := user.PostForm(ApiUrl("userrating"), values)
 	if err != nil {
 		return err
 	}
@@ -106,14 +106,20 @@ func (user Credentials) ChangeRating(rating Ratings) error {
 		return err
 	}
 
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("expected status 200, got %d", resp.StatusCode)
+	}
+
 	var loginResp Credentials
 	if err := json.Unmarshal(body, &loginResp); err != nil {
 		return err
 	}
 
 	if loginResp.Sid != user.Sid {
-		return fmt.Errorf("session ID changed after rating change, expected: [%s], got: [%s]", user.Sid, loginResp.Sid)
+		return fmt.Errorf("session ID changed after rating change, expected: [%+v], got: [%+v]", user.Sid, loginResp.Sid)
 	}
+
+	user.Ratings = ratings
 
 	return nil
 }
