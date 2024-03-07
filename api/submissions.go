@@ -72,75 +72,90 @@ type Submission struct {
 	FavoritesCount   IntString `json:"favorites_count"`
 	UserIconFileName string    `json:"user_icon_file_name"`
 	UserIconURLs
-	Files []struct {
-		FileID                string    `json:"file_id"`
-		FileName              string    `json:"file_name"`
-		ThumbnailURL          string    `json:"thumbnail_url,omitempty"`
-		ThumbnailURLNonCustom string    `json:"thumbnail_url_noncustom,omitempty"`
-		FileURL               string    `json:"file_url,omitempty"`
-		MimeType              string    `json:"mimetype"`
-		SubmissionID          string    `json:"submission_id"`
-		UserID                string    `json:"user_id"`
-		SubmissionFileOrder   IntString `json:"submission_file_order"`
-		FullSizeX             IntString `json:"full_size_x"`
-		FullSizeY             IntString `json:"full_size_y"`
-		ThumbHugeX            IntString `json:"thumb_huge_x,omitempty"`
-		ThumbHugeY            IntString `json:"thumb_huge_y,omitempty"`
-		ThumbNonCustomX       IntString `json:"thumb_huge_noncustom_x,omitempty"`
-		ThumbNonCustomY       IntString `json:"thumb_huge_noncustom_y,omitempty"`
-		InitialFileMD5        string    `json:"initial_file_md5"`
-		FullFileMD5           string    `json:"full_file_md5"`
-		LargeFileMD5          string    `json:"large_file_md5"`
-		SmallFileMD5          string    `json:"small_file_md5"`
-		ThumbnailMD5          string    `json:"thumbnail_md5"`
-		Deleted               BooleanYN `json:"deleted"`
-		CreateDateTime        string    `json:"create_datetime"`
-		CreateDateTimeUser    string    `json:"create_datetime_usertime"`
-	} `json:"files"`
-	Pools []struct {
-		PoolID                     string    `json:"pool_id"`
-		Name                       string    `json:"name"`
-		Description                string    `json:"description"`
-		Count                      IntString `json:"count"`
-		LeftSubmissionID           string    `json:"submission_left_submission_id"`
-		RightSubmissionID          string    `json:"submission_right_submission_id"`
-		LeftSubmissionFileName     string    `json:"submission_left_file_name"`
-		RightSubmissionFileName    string    `json:"submission_right_file_name"`
-		LeftThumbnailURL           string    `json:"submission_left_thumbnail_url,omitempty"`
-		RightThumbnailURL          string    `json:"submission_right_thumbnail_url,omitempty"`
-		LeftThumbnailURLNonCustom  string    `json:"submission_left_thumbnail_url_noncustom,omitempty"`
-		RightThumbnailURLNonCustom string    `json:"submission_right_thumbnail_url_noncustom,omitempty"`
-		LeftThumbX                 IntString `json:"submission_left_thumb_huge_x,omitempty"`
-		LeftThumbY                 IntString `json:"submission_left_thumb_huge_y,omitempty"`
-		RightThumbX                IntString `json:"submission_right_thumb_huge_x,omitempty"`
-		RightThumbY                IntString `json:"submission_right_thumb_huge_y,omitempty"`
-		LeftThumbNonCustomX        IntString `json:"submission_left_thumb_huge_noncustom_x,omitempty"`
-		LeftThumbNonCustomY        IntString `json:"submission_left_thumb_huge_noncustom_y,omitempty"`
-		RightThumbNonCustomX       IntString `json:"submission_right_thumb_huge_noncustom_x,omitempty"`
-		RightThumbNonCustomY       IntString `json:"submission_right_thumb_huge_noncustom_y,omitempty"`
-	} `json:"pools"`
-	Description             string `json:"description"`
-	DescriptionBBCodeParsed string `json:"description_bbcode_parsed"`
-	Writing                 string `json:"writing"`
-	WritingBBCodeParsed     string `json:"writing_bbcode_parsed"`
-	PoolsCount              int    `json:"pools_count"`
-	Ratings                 []struct {
-		ContentTagID IntString `json:"content_tag_id"`
-		Name         string    `json:"name"`
-		Description  string    `json:"description"`
-		RatingID     IntString `json:"rating_id"`
-	} `json:"ratings"`
-	CommentsCount    IntString `json:"comments_count"`
-	Views            IntString `json:"views"`
-	SalesDescription string    `json:"sales_description"`
-	ForSale          BooleanYN `json:"forsale"`
-	DigitalPrice     IntString `json:"digital_price"`
-	Prints           []struct {
-		PrintSizeID        IntString   `json:"print_size_id"`
-		Name               string      `json:"name"`
-		Price              PriceString `json:"price"`
-		PriceOwnerDiscount PriceString `json:"price_owner_discount,omitempty"`
-	} `json:"prints"`
+	ThumbURLNonCustom
+	Files                   []File             `json:"files"`
+	Pools                   []Pool             `json:"pools"`
+	Description             string             `json:"description"`
+	DescriptionBBCodeParsed string             `json:"description_bbcode_parsed"`
+	Writing                 string             `json:"writing"`
+	WritingBBCodeParsed     string             `json:"writing_bbcode_parsed"`
+	PoolsCount              int                `json:"pools_count"`
+	Ratings                 []SubmissionRating `json:"ratings"`
+	CommentsCount           IntString          `json:"comments_count"`
+	Views                   IntString          `json:"views"`
+	SalesDescription        string             `json:"sales_description"`
+	ForSale                 BooleanYN          `json:"forsale"`
+	DigitalPrice            IntString          `json:"digital_price"`
+	Prints                  []Print            `json:"prints"`
+}
+
+type File struct {
+	FileID   string `json:"file_id"`
+	FileName string `json:"file_name"`
+	ThumbURLNonCustom
+	FileURLFull         string    `json:"file_url_full,omitempty"`
+	FileURLScreen       string    `json:"file_url_screen,omitempty"`
+	FileURLPreview      string    `json:"file_url_preview,omitempty"`
+	MimeType            string    `json:"mimetype"`
+	SubmissionID        string    `json:"submission_id"`
+	UserID              string    `json:"user_id"`
+	SubmissionFileOrder IntString `json:"submission_file_order"`
+	FullSizeX           IntString `json:"full_size_x"`
+	FullSizeY           IntString `json:"full_size_y"`
+	ThumbHugeX          IntString `json:"thumb_huge_x,omitempty"`
+	ThumbHugeY          IntString `json:"thumb_huge_y,omitempty"`
+	ThumbNonCustomX     IntString `json:"thumb_huge_noncustom_x,omitempty"`
+	ThumbNonCustomY     IntString `json:"thumb_huge_noncustom_y,omitempty"`
+	InitialFileMD5      string    `json:"initial_file_md5"`
+	FullFileMD5         string    `json:"full_file_md5"`
+	LargeFileMD5        string    `json:"large_file_md5"`
+	SmallFileMD5        string    `json:"small_file_md5"`
+	ThumbnailMD5        string    `json:"thumbnail_md5"`
+	Deleted             BooleanYN `json:"deleted"`
+	CreateDateTime      string    `json:"create_datetime"`
+	CreateDateTimeUser  string    `json:"create_datetime_usertime"`
+}
+
+type Pool struct {
+	PoolID                     string    `json:"pool_id"`
+	Name                       string    `json:"name"`
+	Description                string    `json:"description"`
+	Count                      IntString `json:"count"`
+	LeftSubmissionID           string    `json:"submission_left_submission_id"`
+	RightSubmissionID          string    `json:"submission_right_submission_id"`
+	LeftSubmissionFileName     string    `json:"submission_left_file_name"`
+	RightSubmissionFileName    string    `json:"submission_right_file_name"`
+	LeftThumbnailURL           string    `json:"submission_left_thumbnail_url,omitempty"`
+	RightThumbnailURL          string    `json:"submission_right_thumbnail_url,omitempty"`
+	LeftThumbnailURLNonCustom  string    `json:"submission_left_thumbnail_url_noncustom,omitempty"`
+	RightThumbnailURLNonCustom string    `json:"submission_right_thumbnail_url_noncustom,omitempty"`
+	LeftThumbX                 IntString `json:"submission_left_thumb_huge_x,omitempty"`
+	LeftThumbY                 IntString `json:"submission_left_thumb_huge_y,omitempty"`
+	RightThumbX                IntString `json:"submission_right_thumb_huge_x,omitempty"`
+	RightThumbY                IntString `json:"submission_right_thumb_huge_y,omitempty"`
+	LeftThumbNonCustomX        IntString `json:"submission_left_thumb_huge_noncustom_x,omitempty"`
+	LeftThumbNonCustomY        IntString `json:"submission_left_thumb_huge_noncustom_y,omitempty"`
+	RightThumbNonCustomX       IntString `json:"submission_right_thumb_huge_noncustom_x,omitempty"`
+	RightThumbNonCustomY       IntString `json:"submission_right_thumb_huge_noncustom_y,omitempty"`
+}
+
+type Print struct {
+	PrintSizeID        IntString   `json:"print_size_id"`
+	Name               string      `json:"name"`
+	Price              PriceString `json:"price"`
+	PriceOwnerDiscount PriceString `json:"price_owner_discount,omitempty"`
+}
+type SubmissionRating struct {
+	ContentTagID IntString `json:"content_tag_id"`
+	Name         string    `json:"name"`
+	Description  string    `json:"description"`
+	RatingID     IntString `json:"rating_id"`
+}
+
+type ThumbURLNonCustom struct {
+	ThumbURLHugeNonCustom   string `json:"thumb_url_huge_noncustom,omitempty"`
+	ThumbURLLargeNonCustom  string `json:"thumb_url_large_noncustom,omitempty"`
+	ThumbURLMediumNonCustom string `json:"thumb_url_medium_noncustom,omitempty"`
 }
 
 type ThumbnailDimensions struct {
