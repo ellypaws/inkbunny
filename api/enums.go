@@ -63,17 +63,24 @@ func (b BooleanYN) MarshalJSON() ([]byte, error) {
 // UnmarshalJSON parses string booleans into a BooleanYN type.
 // Typically, responses returns "t" or "f" for true and false, while requests use "yes" and "no".
 func (b *BooleanYN) UnmarshalJSON(data []byte) error {
-	var s string
-	if err := json.Unmarshal(data, &s); err != nil {
+	var d any
+	if err := json.Unmarshal(data, &d); err != nil {
 		return err
 	}
-	switch s {
-	case "t", "yes", "true":
-		*b = true
-	case "f", "no", "false":
-		*b = false
+	switch d := d.(type) {
+	case string:
+		switch d {
+		case "t", "yes", "true":
+			*b = true
+		case "f", "no", "false":
+			*b = false
+		default:
+			return fmt.Errorf(`allowed values for Boolean [t, f], [yes, no], [true, false], got %s`, d)
+		}
+	case bool:
+		*b = BooleanYN(d)
 	default:
-		return fmt.Errorf(`allowed values for Boolean ["t","yes","true","f","no","false"], got "%s"`, s)
+		return fmt.Errorf("invalid type for boolean: %T", d)
 	}
 	return nil
 }
@@ -112,7 +119,7 @@ func (i *IntString) UnmarshalJSON(data []byte) error {
 	}
 	atoi, err := strconv.Atoi(strings.ReplaceAll(string(data), `"`, ""))
 	if err != nil {
-		return fmt.Errorf(`failed to convert data %s to int: %w`, data, err)
+		return fmt.Errorf("failed to convert data %s to int: %w", data, err)
 	}
 	*i = IntString(atoi)
 	return nil
@@ -136,7 +143,7 @@ func (i PriceString) MarshalJSON() ([]byte, error) {
 func (i *PriceString) UnmarshalJSON(data []byte) error {
 	_, err := fmt.Sscanf(strings.ReplaceAll(string(data), `"`, ""), `$%f`, i)
 	if err != nil {
-		return fmt.Errorf(`failed to convert data %s to float64: %w`, data, err)
+		return fmt.Errorf("failed to convert data %s to float64: %w", data, err)
 	}
 	return nil
 }
