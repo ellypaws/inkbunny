@@ -54,6 +54,12 @@ type SubmissionBasic struct {
 	Scraps           BooleanYN `json:"scraps"`
 }
 
+type UserIconURLs struct {
+	Large  string `json:"user_icon_url_large,omitempty"`
+	Medium string `json:"user_icon_url_medium,omitempty"`
+	Small  string `json:"user_icon_url_small,omitempty"`
+}
+
 type Submission struct {
 	SubmissionBasic
 	Keywords []struct {
@@ -65,11 +71,7 @@ type Submission struct {
 	Favorite         BooleanYN `json:"favorite"`
 	FavoritesCount   IntString `json:"favorites_count"`
 	UserIconFileName string    `json:"user_icon_file_name"`
-	UserIconURL      struct {
-		Large  string `json:"user_icon_url_large,omitempty"`
-		Medium string `json:"user_icon_url_medium,omitempty"`
-		Small  string `json:"user_icon_url_small,omitempty"`
-	}
+	UserIconURLs
 	Files []struct {
 		FileID                string    `json:"file_id"`
 		FileName              string    `json:"file_name"`
