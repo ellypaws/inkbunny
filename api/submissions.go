@@ -62,12 +62,7 @@ type UserIconURLs struct {
 
 type Submission struct {
 	SubmissionBasic
-	Keywords []struct {
-		KeywordID   string    `json:"keyword_id"`
-		KeywordName string    `json:"keyword_name"`
-		Suggested   BooleanYN `json:"contributed"`
-		Count       IntString `json:"submissions_count"`
-	} `json:"keywords"`
+	Keywords         []Keyword `json:"keywords"`
 	Favorite         BooleanYN `json:"favorite"`
 	FavoritesCount   IntString `json:"favorites_count"`
 	UserIconFileName string    `json:"user_icon_file_name"`
@@ -87,6 +82,13 @@ type Submission struct {
 	ForSale                 BooleanYN          `json:"forsale"`
 	DigitalPrice            IntString          `json:"digital_price"`
 	Prints                  []Print            `json:"prints"`
+}
+
+type Keyword struct {
+	KeywordID   string    `json:"keyword_id"`
+	KeywordName string    `json:"keyword_name"`
+	Suggested   BooleanYN `json:"contributed"`
+	Count       IntString `json:"submissions_count"`
 }
 
 type File struct {
