@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/url"
+	"strconv"
 )
 
 var (
@@ -41,7 +42,7 @@ func (user *Credentials) Login() (*Credentials, error) {
 	var respLog struct {
 		Credentials
 		RatingsMask string `json:"ratingsmask"`
-		UserID      any    `json:"userid,omitempty"` // temporary override to handle string or number from api
+		UserID      any    `json:"user_id,omitempty"` // temporary override to handle string or number from api
 	}
 	if err = json.Unmarshal(body, &respLog); err != nil {
 		return nil, fmt.Errorf("error parsing response: %w", err)
@@ -53,13 +54,21 @@ func (user *Credentials) Login() (*Credentials, error) {
 	if respLog.UserID != nil {
 		switch id := respLog.UserID.(type) {
 		case string:
-			user.UserID = id
+			userID, err := strconv.Atoi(id)
+			if err != nil {
+				return nil, fmt.Errorf("error parsing userid: %w", err)
+			}
+			user.UserID = IntString(userID)
 		case float64:
-			user.UserID = fmt.Sprintf("%v", id)
+			user.UserID = IntString(id)
 		case int:
-			user.UserID = fmt.Sprintf("%d", id)
+			user.UserID = IntString(id)
 		default:
-			user.UserID = fmt.Sprintf("%v", respLog.UserID)
+			userID, err := strconv.Atoi(fmt.Sprintf("%v", respLog.UserID))
+			if err != nil {
+				return nil, fmt.Errorf("error parsing userid: %w", err)
+			}
+			user.UserID = IntString(userID)
 		}
 	}
 
