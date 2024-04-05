@@ -68,6 +68,7 @@ type Submission struct {
 	UserIconFileName string    `json:"user_icon_file_name"`
 	UserIconURLs
 	ThumbURLNonCustom
+	ThumbnailDimensions
 	Files                   []File             `json:"files"`
 	Pools                   []Pool             `json:"pools"`
 	Description             string             `json:"description"`
@@ -155,9 +156,9 @@ type SubmissionRating struct {
 }
 
 type ThumbURLNonCustom struct {
-	ThumbURLHugeNonCustom   string `json:"thumb_url_huge_noncustom,omitempty"`
-	ThumbURLLargeNonCustom  string `json:"thumb_url_large_noncustom,omitempty"`
-	ThumbURLMediumNonCustom string `json:"thumb_url_medium_noncustom,omitempty"`
+	ThumbURLHugeNonCustom   string `json:"thumbnail_url_huge_noncustom,omitempty"`
+	ThumbURLLargeNonCustom  string `json:"thumbnail_url_large_noncustom,omitempty"`
+	ThumbURLMediumNonCustom string `json:"thumbnail_url_medium_noncustom,omitempty"`
 }
 
 type ThumbnailDimensions struct {
