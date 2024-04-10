@@ -40,8 +40,7 @@ type SubmissionBasic struct {
 	PageCount        IntString `json:"pagecount"`
 	RatingID         IntString `json:"rating_id"`
 	RatingName       string    `json:"rating_name"`
-	ThumbnailDimensions
-	LatestThumbUrl
+	LatestThumbs
 	SubmissionTypeID IntString `json:"submission_type_id"`
 	TypeName         string    `json:"type_name"`
 	Digitalsales     BooleanYN `json:"digitalsales"`
@@ -64,8 +63,7 @@ type Submission struct {
 	FavoritesCount   IntString `json:"favorites_count"`
 	UserIconFileName string    `json:"user_icon_file_name"`
 	UserIconURLs
-	ThumbURLNonCustom
-	ThumbnailDimensions
+	Thumbs
 	Files                   []File             `json:"files"`
 	Pools                   []Pool             `json:"pools"`
 	Description             string             `json:"description"`
@@ -92,7 +90,7 @@ type Keyword struct {
 type File struct {
 	FileID   string `json:"file_id"`
 	FileName string `json:"file_name"`
-	ThumbURLNonCustom
+	Thumbs
 	FileURLFull         string    `json:"file_url_full,omitempty"`
 	FileURLScreen       string    `json:"file_url_screen,omitempty"`
 	FileURLPreview      string    `json:"file_url_preview,omitempty"`
@@ -152,46 +150,50 @@ type SubmissionRating struct {
 	RatingID     IntString `json:"rating_id"`
 }
 
-type LatestThumbUrl struct {
-	LatestThumbnailURLMedium          string `json:"latest_thumbnail_url_medium,omitempty"`
-	LatestThumbnailURLMediumNonCustom string `json:"latest_thumbnail_url_medium_noncustom,omitempty"`
-	LatestThumbnailURLLarge           string `json:"latest_thumbnail_url_large,omitempty"`
-	LatestThumbnailURLLargeNonCustom  string `json:"latest_thumbnail_url_large_noncustom,omitempty"`
-	LatestThumbnailURLHuge            string `json:"latest_thumbnail_url_huge,omitempty"`
-	LatestThumbnailURLHugeNonCustom   string `json:"latest_thumbnail_url_huge_noncustom,omitempty"`
+type LatestThumbs struct {
+	LatestThumbnailURLMedium          string    `json:"latest_thumbnail_url_medium,omitempty"`
+	LatestThumbnailURLMediumNonCustom string    `json:"latest_thumbnail_url_medium_noncustom,omitempty"`
+	LatestThumbnailURLLarge           string    `json:"latest_thumbnail_url_large,omitempty"`
+	LatestThumbnailURLLargeNonCustom  string    `json:"latest_thumbnail_url_large_noncustom,omitempty"`
+	LatestThumbnailURLHuge            string    `json:"latest_thumbnail_url_huge,omitempty"`
+	LatestThumbnailURLHugeNonCustom   string    `json:"latest_thumbnail_url_huge_noncustom,omitempty"`
+	LatestThumbMediumX                IntString `json:"latest_thumb_medium_x,omitempty"`
+	LatestThumbLargeX                 IntString `json:"latest_thumb_large_x,omitempty"`
+	LatestThumbHugeX                  IntString `json:"latest_thumb_huge_x,omitempty"`
+	LatestThumbMediumY                IntString `json:"latest_thumb_medium_y,omitempty"`
+	LatestThumbLargeY                 IntString `json:"latest_thumb_large_y,omitempty"`
+	LatestThumbHugeY                  IntString `json:"latest_thumb_huge_y,omitempty"`
+	LatestThumbMediumNonCustomX       IntString `json:"latest_thumb_medium_noncustom_x,omitempty"`
+	LatestThumbLargeNonCustomX        IntString `json:"latest_thumb_large_noncustom_x,omitempty"`
+	LatestThumbHugeNonCustomX         IntString `json:"latest_thumb_huge_noncustom_x,omitempty"`
+	LatestThumbMediumNonCustomY       IntString `json:"latest_thumb_medium_noncustom_y,omitempty"`
+	LatestThumbLargeNonCustomY        IntString `json:"latest_thumb_large_noncustom_y,omitempty"`
+	LatestThumbHugeNonCustomY         IntString `json:"latest_thumb_huge_noncustom_y,omitempty"`
 }
 
-type ThumbURLNonCustom struct {
-	ThumbURLHugeNonCustom   string `json:"thumbnail_url_huge_noncustom,omitempty"`
-	ThumbURLLargeNonCustom  string `json:"thumbnail_url_large_noncustom,omitempty"`
-	ThumbURLMediumNonCustom string `json:"thumbnail_url_medium_noncustom,omitempty"`
+type Thumbs struct {
+	ThumbnailURLMedium          string `json:"thumbnail_url_medium,omitempty"`
+	ThumbnailURLMediumNonCustom string `json:"thumbnail_url_medium_noncustom,omitempty"`
+	ThumbnailURLLarge           string `json:"thumbnail_url_large,omitempty"`
+	ThumbnailURLLargeNonCustom  string `json:"thumbnail_url_large_noncustom,omitempty"`
+	ThumbnailURLHuge            string `json:"thumbnail_url_huge,omitempty"`
+	ThumbnailURLHugeNonCustom   string `json:"thumbnail_url_huge_noncustom,omitempty"`
+	ThumbnailDimensions
 }
 
 type ThumbnailDimensions struct {
-	ThumbMediumX                IntString `json:"thumb_medium_x,omitempty"`
-	ThumbLargeX                 IntString `json:"thumb_large_x,omitempty"`
-	ThumbHugeX                  IntString `json:"thumb_huge_x,omitempty"`
-	ThumbMediumY                IntString `json:"thumb_medium_y,omitempty"`
-	ThumbLargeY                 IntString `json:"thumb_large_y,omitempty"`
-	ThumbHugeY                  IntString `json:"thumb_huge_y,omitempty"`
-	ThumbMediumNonCustomX       IntString `json:"thumb_medium_noncustom_x,omitempty"`
-	ThumbLargeNonCustomX        IntString `json:"thumb_large_noncustom_x,omitempty"`
-	ThumbHugeNonCustomX         IntString `json:"thumb_huge_noncustom_x,omitempty"`
-	ThumbMediumNonCustomY       IntString `json:"thumb_medium_noncustom_y,omitempty"`
-	ThumbLargeNonCustomY        IntString `json:"thumb_large_noncustom_y,omitempty"`
-	ThumbHugeNonCustomY         IntString `json:"thumb_huge_noncustom_y,omitempty"`
-	LatestThumbMediumX          IntString `json:"latest_thumb_medium_x,omitempty"`
-	LatestThumbLargeX           IntString `json:"latest_thumb_large_x,omitempty"`
-	LatestThumbHugeX            IntString `json:"latest_thumb_huge_x,omitempty"`
-	LatestThumbMediumY          IntString `json:"latest_thumb_medium_y,omitempty"`
-	LatestThumbLargeY           IntString `json:"latest_thumb_large_y,omitempty"`
-	LatestThumbHugeY            IntString `json:"latest_thumb_huge_y,omitempty"`
-	LatestThumbMediumNonCustomX IntString `json:"latest_thumb_medium_noncustom_x,omitempty"`
-	LatestThumbLargeNonCustomX  IntString `json:"latest_thumb_large_noncustom_x,omitempty"`
-	LatestThumbHugeNonCustomX   IntString `json:"latest_thumb_huge_noncustom_x,omitempty"`
-	LatestThumbMediumNonCustomY IntString `json:"latest_thumb_medium_noncustom_y,omitempty"`
-	LatestThumbLargeNonCustomY  IntString `json:"latest_thumb_large_noncustom_y,omitempty"`
-	LatestThumbHugeNonCustomY   IntString `json:"latest_thumb_huge_noncustom_y,omitempty"`
+	ThumbMediumX          IntString `json:"thumb_medium_x,omitempty"`
+	ThumbLargeX           IntString `json:"thumb_large_x,omitempty"`
+	ThumbHugeX            IntString `json:"thumb_huge_x,omitempty"`
+	ThumbMediumY          IntString `json:"thumb_medium_y,omitempty"`
+	ThumbLargeY           IntString `json:"thumb_large_y,omitempty"`
+	ThumbHugeY            IntString `json:"thumb_huge_y,omitempty"`
+	ThumbMediumNonCustomX IntString `json:"thumb_medium_noncustom_x,omitempty"`
+	ThumbLargeNonCustomX  IntString `json:"thumb_large_noncustom_x,omitempty"`
+	ThumbHugeNonCustomX   IntString `json:"thumb_huge_noncustom_x,omitempty"`
+	ThumbMediumNonCustomY IntString `json:"thumb_medium_noncustom_y,omitempty"`
+	ThumbLargeNonCustomY  IntString `json:"thumb_large_noncustom_y,omitempty"`
+	ThumbHugeNonCustomY   IntString `json:"thumb_huge_noncustom_y,omitempty"`
 }
 
 type SubmissionDetailsResponse struct {
@@ -253,7 +255,6 @@ func (user Credentials) SubmissionDetails(req SubmissionDetailsRequest) (Submiss
 		return SubmissionDetailsResponse{}, fmt.Errorf("failed to unmarshal response body: %w", err)
 	}
 	return submission, nil
-
 }
 
 type SubmissionRequest struct {
