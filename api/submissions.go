@@ -40,6 +40,7 @@ type SubmissionBasic struct {
 	PageCount        IntString `json:"pagecount"`
 	RatingID         IntString `json:"rating_id"`
 	RatingName       string    `json:"rating_name"`
+	Thumbs
 	LatestThumbs
 	SubmissionTypeID IntString `json:"submission_type_id"`
 	TypeName         string    `json:"type_name"`
@@ -63,7 +64,6 @@ type Submission struct {
 	FavoritesCount   IntString `json:"favorites_count"`
 	UserIconFileName string    `json:"user_icon_file_name"`
 	UserIconURLs
-	Thumbs
 	Files                   []File             `json:"files"`
 	Pools                   []Pool             `json:"pools"`
 	Description             string             `json:"description"`
