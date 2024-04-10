@@ -22,29 +22,26 @@ type SubmissionDetailsRequest struct {
 }
 
 type SubmissionBasic struct {
-	SubmissionID                string    `json:"submission_id"`
-	Hidden                      BooleanYN `json:"hidden"`
-	Username                    string    `json:"username"`
-	UserID                      string    `json:"user_id"`
-	CreateDateSystem            string    `json:"create_datetime"`
-	CreateDateUser              string    `json:"create_datetime_usertime"`
-	UpdateDateSystem            string    `json:"last_file_update_datetime,omitempty"`
-	UpdateDateUser              string    `json:"last_file_update_datetime_usertime,omitempty"`
-	FileName                    string    `json:"file_name"`
-	LatestFileName              string    `json:"latest_file_name"`
-	ThumbnailURL                string    `json:"thumbnail_url,omitempty"`
-	ThumbnailURLNonCustom       string    `json:"thumbnail_url_noncustom,omitempty"`
-	LatestThumbnailURL          string    `json:"latest_thumbnail_url,omitempty"`
-	LatestThumbnailURLNonCustom string    `json:"latest_thumbnail_url_noncustom,omitempty"`
-	Title                       string    `json:"title"`
-	Deleted                     BooleanYN `json:"deleted"`
-	Public                      BooleanYN `json:"public"`
-	MimeType                    string    `json:"mimetype"`
-	LatestMimeType              string    `json:"latest_mimetype"`
-	PageCount                   IntString `json:"pagecount"`
-	RatingID                    IntString `json:"rating_id"`
-	RatingName                  string    `json:"rating_name"`
+	SubmissionID     string    `json:"submission_id"`
+	Hidden           BooleanYN `json:"hidden"`
+	Username         string    `json:"username"`
+	UserID           string    `json:"user_id"`
+	CreateDateSystem string    `json:"create_datetime"`
+	CreateDateUser   string    `json:"create_datetime_usertime"`
+	UpdateDateSystem string    `json:"last_file_update_datetime,omitempty"`
+	UpdateDateUser   string    `json:"last_file_update_datetime_usertime,omitempty"`
+	FileName         string    `json:"file_name"`
+	LatestFileName   string    `json:"latest_file_name"`
+	Title            string    `json:"title"`
+	Deleted          BooleanYN `json:"deleted"`
+	Public           BooleanYN `json:"public"`
+	MimeType         string    `json:"mimetype"`
+	LatestMimeType   string    `json:"latest_mimetype"`
+	PageCount        IntString `json:"pagecount"`
+	RatingID         IntString `json:"rating_id"`
+	RatingName       string    `json:"rating_name"`
 	ThumbnailDimensions
+	LatestThumbUrl
 	SubmissionTypeID IntString `json:"submission_type_id"`
 	TypeName         string    `json:"type_name"`
 	Digitalsales     BooleanYN `json:"digitalsales"`
@@ -153,6 +150,15 @@ type SubmissionRating struct {
 	Name         string    `json:"name"`
 	Description  string    `json:"description"`
 	RatingID     IntString `json:"rating_id"`
+}
+
+type LatestThumbUrl struct {
+	LatestThumbnailURLMedium          string `json:"latest_thumbnail_url_medium,omitempty"`
+	LatestThumbnailURLMediumNonCustom string `json:"latest_thumbnail_url_medium_noncustom,omitempty"`
+	LatestThumbnailURLLarge           string `json:"latest_thumbnail_url_large,omitempty"`
+	LatestThumbnailURLLargeNonCustom  string `json:"latest_thumbnail_url_large_noncustom,omitempty"`
+	LatestThumbnailURLHuge            string `json:"latest_thumbnail_url_huge,omitempty"`
+	LatestThumbnailURLHugeNonCustom   string `json:"latest_thumbnail_url_huge_noncustom,omitempty"`
 }
 
 type ThumbURLNonCustom struct {
