@@ -50,7 +50,7 @@ func (user Credentials) Request(method string, url string, body io.Reader) (*htt
 }
 
 func (user Credentials) Get(url *url.URL) (*http.Response, error) {
-	req, _ := user.Request("GET", url.String(), nil)
+	req, _ := user.Request(http.MethodGet, url.String(), nil)
 
 	resp, err := (&http.Client{}).Do(req)
 	if err != nil {
@@ -60,7 +60,7 @@ func (user Credentials) Get(url *url.URL) (*http.Response, error) {
 }
 
 func (user Credentials) Post(url *url.URL, contentType string, body io.Reader) (*http.Response, error) {
-	req, _ := user.Request("POST", url.String(), body)
+	req, _ := user.Request(http.MethodPost, url.String(), body)
 	req.Header.Set("Content-Type", contentType)
 
 	resp, err := (&http.Client{}).Do(req)
