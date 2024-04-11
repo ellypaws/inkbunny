@@ -76,7 +76,7 @@ func TestCredentials_SearchSubmissionsRandom(t *testing.T) {
 		SubmissionsPerPage: 5,
 		Page:               1,
 		Text:               "inkbunny",
-		Type:               SubmissionTypePicturePinup,
+		Type:               SubmissionTypes{SubmissionTypePicturePinup},
 		OrderBy:            "views",
 		Random:             true,
 		Scraps:             "both",

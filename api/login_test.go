@@ -13,6 +13,10 @@ func TestGuest(t *testing.T) {
 		t.Errorf("Expected no error, got %s", err)
 	}
 
+	if user == nil {
+		t.Fatalf("Expected user to not be nil, got nil")
+	}
+
 	if user.Username != "guest" {
 		t.Errorf("Expected username to be guest, got %s", user.Username)
 	}
@@ -32,6 +36,10 @@ func TestCredentials_Login(t *testing.T) {
 	user, err := user.Login()
 	if err != nil {
 		t.Errorf("Expected no error, got %s", err)
+	}
+
+	if user == nil {
+		t.Fatalf("Expected user to not be nil, got nil")
 	}
 
 	if user.Username != "guest" {

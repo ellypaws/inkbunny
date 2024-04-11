@@ -1,9 +1,11 @@
 package api
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"github.com/ellypaws/inkbunny/api/utils"
+	"io"
 	"strings"
 )
 
@@ -224,15 +226,24 @@ func (user Credentials) SubmissionDetails(req SubmissionDetailsRequest) (Submiss
 		urlValues.Set("submission_ids", strings.Join(req.SubmissionIDSlice, ","))
 	}
 
-	resp, err := user.Get(ApiUrl("submissions", urlValues))
+	resp, err := user.PostForm(ApiUrl("submissions", urlValues), nil)
 	if err != nil {
 		return SubmissionDetailsResponse{}, fmt.Errorf("failed to get submission details: %w", err)
 	}
 	defer resp.Body.Close()
 
+	bin, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return SubmissionDetailsResponse{}, fmt.Errorf("failed to read response body: %w", err)
+	}
+
+	if err := CheckError(bin); err != nil {
+		return SubmissionDetailsResponse{}, fmt.Errorf("error getting submission details: %w", err)
+	}
+
 	var submission SubmissionDetailsResponse
-	if err := json.NewDecoder(resp.Body).Decode(&submission); err != nil {
-		return SubmissionDetailsResponse{}, fmt.Errorf("failed to unmarshal response body: %w", err)
+	if err := json.Unmarshal(bin, &submission); err != nil {
+		return SubmissionDetailsResponse{}, fmt.Errorf("failed to unmarshal submission details: %w", err)
 	}
 	return submission, nil
 }
@@ -256,11 +267,25 @@ func (user Credentials) SubmissionFavorites(req SubmissionRequest) (SubmissionFa
 		req.SID = user.Sid
 	}
 
-	resp, err := user.Get(ApiUrl("submissionfavingusers", utils.StructToUrlValues(req)))
+	bin, err := json.Marshal(req)
+	if err != nil {
+		return SubmissionFavoritesResponse{}, err
+	}
+
+	resp, err := user.Post(ApiUrl("submissionfavingusers"), MimeTypeJSON, bytes.NewReader(bin))
 	if err != nil {
 		return SubmissionFavoritesResponse{}, err
 	}
 	defer resp.Body.Close()
+
+	bin, err = io.ReadAll(resp.Body)
+	if err != nil {
+		return SubmissionFavoritesResponse{}, err
+	}
+
+	if err := CheckError(bin); err != nil {
+		return SubmissionFavoritesResponse{}, fmt.Errorf("error getting favorites: %w", err)
+	}
 
 	var favorites SubmissionFavoritesResponse
 	if err := json.NewDecoder(resp.Body).Decode(&favorites); err != nil {

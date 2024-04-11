@@ -140,8 +140,7 @@ func (user Credentials) SearchSubmissions(req SubmissionSearchRequest) (Submissi
 		req.SID = user.Sid
 	}
 
-	resp, err := user.Get(ApiUrl("search", utils.StructToUrlValues(req)))
-
+	resp, err := user.PostForm(ApiUrl("search", utils.StructToUrlValues(req)), nil)
 	if err != nil {
 		return SubmissionSearchResponse{}, err
 	}

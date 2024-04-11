@@ -26,7 +26,7 @@ func (user *Credentials) Login() (*Credentials, error) {
 	if user.Username != "guest" && user.Password == "" {
 		return nil, ErrEmptyPassword
 	}
-	resp, err := user.PostForm(ApiUrl("login"), url.Values{"username": {user.Username}, "password": {user.Password}})
+	resp, err := user.PostForm(ApiUrl("login", url.Values{"username": {user.Username}, "password": {user.Password}}), nil)
 	user.Password = ""
 	if err != nil {
 		return nil, fmt.Errorf("error logging in: %w", err)
@@ -41,9 +41,14 @@ func (user *Credentials) Login() (*Credentials, error) {
 		Credentials
 		RatingsMask string `json:"ratingsmask"`
 		UserID      any    `json:"user_id,omitempty"` // temporary override to handle string or number from api
+		ErrorResponse
 	}
 	if err = json.Unmarshal(body, &respLog); err != nil {
 		return nil, fmt.Errorf("error parsing response: %w", err)
+	}
+
+	if respLog.ErrorResponse.Code != nil {
+		return nil, fmt.Errorf("error logging in: %s", respLog.ErrorResponse.Message)
 	}
 
 	if respLog.Sid == "" {
@@ -84,7 +89,7 @@ func (user *Credentials) Logout() error {
 	if user == nil {
 		return ErrNotLoggedIn
 	}
-	resp, err := user.Get(ApiUrl("logout", url.Values{"sid": {user.Sid}}))
+	resp, err := user.PostForm(ApiUrl("logout", url.Values{"sid": {user.Sid}}), nil)
 	if err != nil {
 		return err
 	}
@@ -92,6 +97,10 @@ func (user *Credentials) Logout() error {
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return err
+	}
+
+	if err := CheckError(body); err != nil {
+		return fmt.Errorf("error logging out: %w", err)
 	}
 
 	var logoutResp LogoutResponse

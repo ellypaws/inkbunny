@@ -1,6 +1,7 @@
 package api
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -29,6 +30,12 @@ func InkbunnyUrl(path string, values ...url.Values) *url.URL {
 	return request
 }
 
+const (
+	MimeTypeJSON  = "application/json"
+	MimeTypeForm  = "multipart/form-data"
+	MimeTypeQuery = "application/x-www-form-urlencoded"
+)
+
 // ApiUrl is a helper function to generate Inkbunny API URLs.
 // path is the name of the API endpoint, without the "api_" prefix or ".php" suffix
 // example: "login" for "https://inkbunny.net/api_login.php"
@@ -52,7 +59,7 @@ func (user Credentials) Request(method string, url string, body io.Reader) (*htt
 func (user Credentials) Get(url *url.URL) (*http.Response, error) {
 	req, _ := user.Request(http.MethodGet, url.String(), nil)
 
-	resp, err := (&http.Client{}).Do(req)
+	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -62,16 +69,30 @@ func (user Credentials) Get(url *url.URL) (*http.Response, error) {
 func (user Credentials) Post(url *url.URL, contentType string, body io.Reader) (*http.Response, error) {
 	req, _ := user.Request(http.MethodPost, url.String(), body)
 	req.Header.Set("Content-Type", contentType)
+	req.Header.Set("Accept", MimeTypeJSON)
 
-	resp, err := (&http.Client{}).Do(req)
+	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
 	return resp, nil
 }
 
-func (user Credentials) PostForm(url *url.URL, values url.Values) (*http.Response, error) {
-	return user.Post(url, "application/x-www-form-urlencoded", strings.NewReader(values.Encode()))
+func (user Credentials) PostQuery(url *url.URL, values url.Values) (*http.Response, error) {
+	return user.Post(url, MimeTypeQuery, strings.NewReader(values.Encode()))
+}
+
+func (user Credentials) PostForm(url *url.URL, body any) (*http.Response, error) {
+	if body == nil {
+		return user.Post(url, MimeTypeForm, nil)
+	}
+
+	bin, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+
+	return user.Post(url, MimeTypeForm, bytes.NewReader(bin))
 }
 
 // Function to find mutual elements in two slices
@@ -96,7 +117,7 @@ func findMutual(a, b []string) []string {
 func (user *Credentials) ChangeRating(ratings Ratings) error {
 	values := utils.StructToUrlValues(ratings)
 	values.Set("sid", user.Sid)
-	resp, err := user.PostForm(ApiUrl("userrating"), values)
+	resp, err := user.PostForm(ApiUrl("userrating", values), nil)
 	if err != nil {
 		return err
 	}
@@ -108,6 +129,10 @@ func (user *Credentials) ChangeRating(ratings Ratings) error {
 
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("expected status 200, got %d", resp.StatusCode)
+	}
+
+	if err := CheckError(body); err != nil {
+		return fmt.Errorf("error changing ratings: %w", err)
 	}
 
 	var loginResp Credentials
@@ -125,7 +150,7 @@ func (user *Credentials) ChangeRating(ratings Ratings) error {
 }
 
 func GetUserID(username string) (UsernameAutocomplete, error) {
-	resp, err := Credentials{}.Get(ApiUrl("username_autosuggest", url.Values{"username": {username}}))
+	resp, err := Credentials{}.PostForm(ApiUrl("username_autosuggest", url.Values{"username": {username}}), nil)
 	if err != nil {
 		return UsernameAutocomplete{}, err
 	}

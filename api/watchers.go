@@ -17,7 +17,7 @@ type WatchInfo struct {
 
 // GetWatching gets the watchlist of a logged-in user
 func (user Credentials) GetWatching() ([]UsernameID, error) {
-	resp, err := user.Get(ApiUrl("watchlist", url.Values{"sid": {user.Sid}}))
+	resp, err := user.PostForm(ApiUrl("watchlist", url.Values{"sid": {user.Sid}}), nil)
 	if err != nil {
 		return nil, err
 	}
