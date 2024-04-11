@@ -23,9 +23,7 @@ func (user *Credentials) Login() (*Credentials, error) {
 	if user == nil {
 		return nil, ErrNilUser
 	}
-	if user.Username == "" || user.Username == "guest" {
-		user.Username = "guest"
-	} else if user.Password == "" {
+	if user.Username != "guest" && user.Password == "" {
 		return nil, ErrEmptyPassword
 	}
 	resp, err := user.PostForm(ApiUrl("login"), url.Values{"username": {user.Username}, "password": {user.Password}})
