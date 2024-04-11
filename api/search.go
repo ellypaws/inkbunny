@@ -11,20 +11,20 @@ import (
 )
 
 type SubmissionSearchRequest struct {
-	SID                string     `json:"sid"`
-	OutputMode         OutputMode `json:"output_mode,omitempty"`
-	RID                string     `json:"rid,omitempty"`
-	SubmissionIDsOnly  BooleanYN  `json:"submission_ids_only,omitempty"`
-	SubmissionsPerPage IntString  `json:"submissions_per_page,omitempty"`
-	Page               IntString  `json:"page,omitempty"` // Results page number to return. Default: 1.
+	SID                string     `json:"sid" query:"sid"`
+	OutputMode         OutputMode `json:"output_mode,omitempty" query:"output_mode"`
+	RID                string     `json:"rid,omitempty" query:"rid"`
+	SubmissionIDsOnly  BooleanYN  `json:"submission_ids_only,omitempty" query:"submission_ids_only"`
+	SubmissionsPerPage IntString  `json:"submissions_per_page,omitempty" query:"submissions_per_page"`
+	Page               IntString  `json:"page,omitempty" query:"page"` // Results page number to return. Default: 1.
 	// Not to be confused with Text. This is a boolean value to return list of Top 100 Keywords.
 	// Return list of Top 100 Keywords associated with all submissions on current results page.
 	// Note that this list includes both officially assigned keywords and also keywords
 	// suggested for this submission by other users.
-	KeywordsList  BooleanYN `json:"keywords_list,omitempty"`
-	NoSubmissions BooleanYN `json:"no_submissions,omitempty"`
-	GetRID        BooleanYN `json:"get_rid,omitempty"`
-	FieldJoinType JoinType  `json:"field_join_type,omitempty"` // "or" or "and"
+	KeywordsList  BooleanYN `json:"keywords_list,omitempty" query:"keywords_list"`
+	NoSubmissions BooleanYN `json:"no_submissions,omitempty" query:"no_submissions"`
+	GetRID        BooleanYN `json:"get_rid,omitempty" query:"get_rid"`
+	FieldJoinType JoinType  `json:"field_join_type,omitempty" query:"field_join_type"` // "or" or "and"
 	// Text to search chosen fields for. eg "dragon", "wolf", etc.
 	// A Full Text search is performed using this string (see the meaning of Full Text searches in the Postgresql Documentation).
 	// The characters "_" and "," are converted to spaces automatically.
@@ -35,30 +35,30 @@ type SubmissionSearchRequest struct {
 	// Values: (Any text string).
 	//
 	// Default: n/a. Required: No
-	Text              string          `json:"text,omitempty"`
-	StringJoinType    JoinType        `json:"string_join_type,omitempty"`
-	Keywords          BooleanYN       `json:"keywords,omitempty"`
-	Title             BooleanYN       `json:"title,omitempty"`
-	Description       BooleanYN       `json:"description,omitempty"`
-	MD5               BooleanYN       `json:"md5,omitempty"`
-	KeywordID         string          `json:"keyword_id,omitempty"`
-	Username          string          `json:"username,omitempty"`
-	UserID            string          `json:"user_id,omitempty"`
-	FavsUserID        string          `json:"favs_user_id,omitempty"`
-	UnreadSubmissions BooleanYN       `json:"unread_submissions,omitempty"`
-	Type              SubmissionTypes `json:"type,omitempty"`
-	Sales             string          `json:"sales,omitempty"` // Values: forsale, digital, prints
-	PoolID            string          `json:"pool_id,omitempty"`
-	OrderBy           string          `json:"orderby,omitempty"` // Values: create_datetime, unread_datetime, views, total_print_sales, total_digital_sales, total_sales, username, fav_datetime, fav_stars, pool_order. Default: create_datetime.
-	DaysLimit         IntString       `json:"dayslimit,omitempty"`
-	Random            BooleanYN       `json:"random,omitempty"`
+	Text              string          `json:"text,omitempty" query:"text"`
+	StringJoinType    JoinType        `json:"string_join_type,omitempty" query:"string_join_type"`
+	Keywords          BooleanYN       `json:"keywords,omitempty" query:"keywords"`
+	Title             BooleanYN       `json:"title,omitempty" query:"title"`
+	Description       BooleanYN       `json:"description,omitempty" query:"description"`
+	MD5               BooleanYN       `json:"md5,omitempty" query:"md5"`
+	KeywordID         string          `json:"keyword_id,omitempty" query:"keyword_id"`
+	Username          string          `json:"username,omitempty" query:"username"`
+	UserID            string          `json:"user_id,omitempty" query:"user_id"`
+	FavsUserID        string          `json:"favs_user_id,omitempty" query:"favs_user_id"`
+	UnreadSubmissions BooleanYN       `json:"unread_submissions,omitempty" query:"unread_submissions"`
+	Type              SubmissionTypes `json:"type,omitempty" query:"type"`
+	Sales             string          `json:"sales,omitempty" query:"sales"` // Values: forsale, digital, prints
+	PoolID            string          `json:"pool_id,omitempty" query:"pool_id"`
+	OrderBy           string          `json:"orderby,omitempty" query:"orderby"` // Values: create_datetime, unread_datetime, views, total_print_sales, total_digital_sales, total_sales, username, fav_datetime, fav_stars, pool_order. Default: create_datetime.
+	DaysLimit         IntString       `json:"dayslimit,omitempty" query:"dayslimit"`
+	Random            BooleanYN       `json:"random,omitempty" query:"random"`
 	// Scraps Set how submissions marked as “Scraps” are returned.
 	// Possible values are:
 	// 	both – show submissions from Scraps and Main galleries.
 	// 	no – Do not show Scraps. Shows only submissions from Main galleries.
 	// 	only – Show only submissions from Scraps galleries, not Main galleries.
-	Scraps     string    `json:"scraps,omitempty"`
-	CountLimit IntString `json:"count_limit,omitempty"`
+	Scraps     string    `json:"scraps,omitempty" query:"scraps"`
+	CountLimit IntString `json:"count_limit,omitempty" query:"count_limit"`
 }
 
 type SubmissionSearchResponse struct {

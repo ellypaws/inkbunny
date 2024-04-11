@@ -9,16 +9,16 @@ import (
 
 // SubmissionDetailsRequest is modified to use BooleanYN for fields requiring "yes" or "no" representation.
 type SubmissionDetailsRequest struct {
-	SID                         string     `json:"sid"`
-	SubmissionIDs               string     `json:"submission_ids"` // SubmissionIDs is a comma-separated list of submission IDs
+	SID                         string     `json:"sid" query:"sid"`
+	SubmissionIDs               string     `json:"submission_ids" query:"submission_ids"` // SubmissionIDs is a comma-separated list of submission IDs
 	SubmissionIDSlice           []string   // SubmissionIDSlice will be joined as a comma-separated into SubmissionIDs
-	OutputMode                  OutputMode `json:"output_mode"`
-	SortKeywordsBy              string     `json:"sort_keywords_by"`
-	ShowDescription             BooleanYN  `json:"show_description"`
-	ShowDescriptionBbcodeParsed BooleanYN  `json:"show_description_bbcode_parsed"`
-	ShowWriting                 BooleanYN  `json:"show_writing"`
-	ShowWritingBbcodeParsed     BooleanYN  `json:"show_writing_bbcode_parsed"`
-	ShowPools                   BooleanYN  `json:"show_pools"`
+	OutputMode                  OutputMode `json:"output_mode" query:"output_mode"`
+	SortKeywordsBy              string     `json:"sort_keywords_by" query:"sort_keywords_by"`
+	ShowDescription             BooleanYN  `json:"show_description" query:"show_description"`
+	ShowDescriptionBbcodeParsed BooleanYN  `json:"show_description_bbcode_parsed" query:"show_description_bbcode_parsed"`
+	ShowWriting                 BooleanYN  `json:"show_writing" query:"show_writing"`
+	ShowWritingBbcodeParsed     BooleanYN  `json:"show_writing_bbcode_parsed" query:"show_writing_bbcode_parsed"`
+	ShowPools                   BooleanYN  `json:"show_pools" query:"show_pools"`
 }
 
 type SubmissionBasic struct {
@@ -238,9 +238,9 @@ func (user Credentials) SubmissionDetails(req SubmissionDetailsRequest) (Submiss
 }
 
 type SubmissionRequest struct {
-	SID          string     `json:"sid"`
-	SubmissionID string     `json:"submission_id"`
-	OutputMode   OutputMode `json:"output_mode,omitempty"`
+	SID          string     `json:"sid" query:"sid"`
+	SubmissionID string     `json:"submission_id" query:"submission_id"`
+	OutputMode   OutputMode `json:"output_mode,omitempty" query:"output_mode"`
 }
 
 type SubmissionFavoritesResponse struct {
