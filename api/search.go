@@ -1,10 +1,13 @@
 package api
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"github.com/ellypaws/inkbunny/api/utils"
 	"io"
+	"strconv"
+	"strings"
 )
 
 type SubmissionSearchRequest struct {
@@ -32,23 +35,23 @@ type SubmissionSearchRequest struct {
 	// Values: (Any text string).
 	//
 	// Default: n/a. Required: No
-	Text              string         `json:"text,omitempty"`
-	StringJoinType    JoinType       `json:"string_join_type,omitempty"`
-	Keywords          BooleanYN      `json:"keywords,omitempty"`
-	Title             BooleanYN      `json:"title,omitempty"`
-	Description       BooleanYN      `json:"description,omitempty"`
-	MD5               BooleanYN      `json:"md5,omitempty"`
-	KeywordID         string         `json:"keyword_id,omitempty"`
-	Username          string         `json:"username,omitempty"`
-	UserID            string         `json:"user_id,omitempty"`
-	FavsUserID        string         `json:"favs_user_id,omitempty"`
-	UnreadSubmissions BooleanYN      `json:"unread_submissions,omitempty"`
-	Type              SubmissionType `json:"type,omitempty"`
-	Sales             string         `json:"sales,omitempty"` // Values: forsale, digital, prints
-	PoolID            string         `json:"pool_id,omitempty"`
-	OrderBy           string         `json:"orderby,omitempty"` // Values: create_datetime, unread_datetime, views, total_print_sales, total_digital_sales, total_sales, username, fav_datetime, fav_stars, pool_order. Default: create_datetime.
-	DaysLimit         IntString      `json:"dayslimit,omitempty"`
-	Random            BooleanYN      `json:"random,omitempty"`
+	Text              string          `json:"text,omitempty"`
+	StringJoinType    JoinType        `json:"string_join_type,omitempty"`
+	Keywords          BooleanYN       `json:"keywords,omitempty"`
+	Title             BooleanYN       `json:"title,omitempty"`
+	Description       BooleanYN       `json:"description,omitempty"`
+	MD5               BooleanYN       `json:"md5,omitempty"`
+	KeywordID         string          `json:"keyword_id,omitempty"`
+	Username          string          `json:"username,omitempty"`
+	UserID            string          `json:"user_id,omitempty"`
+	FavsUserID        string          `json:"favs_user_id,omitempty"`
+	UnreadSubmissions BooleanYN       `json:"unread_submissions,omitempty"`
+	Type              SubmissionTypes `json:"type,omitempty"`
+	Sales             string          `json:"sales,omitempty"` // Values: forsale, digital, prints
+	PoolID            string          `json:"pool_id,omitempty"`
+	OrderBy           string          `json:"orderby,omitempty"` // Values: create_datetime, unread_datetime, views, total_print_sales, total_digital_sales, total_sales, username, fav_datetime, fav_stars, pool_order. Default: create_datetime.
+	DaysLimit         IntString       `json:"dayslimit,omitempty"`
+	Random            BooleanYN       `json:"random,omitempty"`
 	// Scraps Set how submissions marked as “Scraps” are returned.
 	// Possible values are:
 	// 	both – show submissions from Scraps and Main galleries.
@@ -81,6 +84,53 @@ type SubmissionSearchResponse struct {
 		Stars            string    `json:"stars"`
 	} `json:"submissions,omitempty"`
 }
+
+type SubmissionType int
+
+type SubmissionTypes []SubmissionType
+
+func (s SubmissionTypes) MarshalJSON() ([]byte, error) {
+	var types bytes.Buffer
+	types.WriteRune('"')
+	for i, t := range s {
+		if i > 0 {
+			types.WriteString(",")
+		}
+		types.WriteString(fmt.Sprintf("%d", t))
+	}
+	types.WriteRune('"')
+	return types.Bytes(), nil
+}
+
+func (s *SubmissionTypes) UnmarshalJSON(data []byte) error {
+	var types []SubmissionType
+	for _, t := range strings.Split(string(data), ",") {
+		i, err := strconv.Atoi(t)
+		if err != nil {
+			return fmt.Errorf("failed to parse submission type: %w", err)
+		}
+		types = append(types, SubmissionType(i))
+	}
+	*s = types
+	return nil
+}
+
+const (
+	SubmissionTypePicturePinup              SubmissionType = iota + 1 //1 - Picture/Pinup
+	SubmissionTypeSketch                                              //2 - Sketch
+	SubmissionTypePictureSeries                                       //3 - Picture Series
+	SubmissionTypeComic                                               //4 - Comic
+	SubmissionTypePortfolio                                           //5 - Portfolio
+	SubmissionTypeShockwaveFlashAnimation                             //6 - Shockwave/Flash - Animation
+	SubmissionTypeShockwaveFlashInteractive                           //7 - Shockwave/Flash - Interactive
+	SubmissionTypeVideoFeatureLength                                  //8 - Video - Feature Length
+	SubmissionTypeVideoAnimation3DCGI                                 //9 - Video - Animation/3D/CGI
+	SubmissionTypeMusicSingleTrack                                    //10 - Music - Single Track
+	SubmissionTypeMusicAlbum                                          //11 - Music - Album
+	SubmissionTypeWritingDocument                                     //12 - Writing - Document
+	SubmissionTypeCharacterSheet                                      //13 - Character Sheet
+	SubmissionTypePhotography                                         //14 - Photography - Fursuit/Sculpture/Jewelry/etc
+)
 
 func (user Credentials) SearchSubmissions(req SubmissionSearchRequest) (SubmissionSearchResponse, error) {
 	if !user.LoggedIn() {
