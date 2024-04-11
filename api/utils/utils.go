@@ -25,7 +25,7 @@ func StructToUrlValues(s any) url.Values {
 func structToUrlValuesRecursive(s any, urlValues url.Values) url.Values {
 	v := reflect.ValueOf(s)
 	// If the passed interface is a pointer, get the value it points to
-	if v.Kind() == reflect.Ptr {
+	if v.Kind() == reflect.Pointer {
 		v = v.Elem()
 	}
 	t := v.Type()
@@ -74,6 +74,12 @@ func structToUrlValuesRecursive(s any, urlValues url.Values) url.Values {
 				} else {
 					urlValues.Add(tagParts[0], "no")
 				}
+			case reflect.Slice:
+				var s []string
+				for i := 0; i < value.Len(); i++ {
+					s = append(s, fmt.Sprintf("%v", value.Index(i).Interface()))
+				}
+				urlValues.Add(tagParts[0], strings.Join(s, ","))
 			default:
 				urlValues.Add(tagParts[0], fmt.Sprintf("%v", value.Interface()))
 			}
