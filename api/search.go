@@ -104,7 +104,10 @@ func (s SubmissionTypes) MarshalJSON() ([]byte, error) {
 
 func (s *SubmissionTypes) UnmarshalJSON(data []byte) error {
 	var types []SubmissionType
-	for _, t := range strings.Split(string(data), ",") {
+	for _, t := range strings.Split(strings.Trim(string(data), `["]`), ",") {
+		if len(t) == 0 {
+			continue
+		}
 		i, err := strconv.Atoi(t)
 		if err != nil {
 			return fmt.Errorf("failed to parse submission type: %w", err)
