@@ -103,7 +103,16 @@ func (s SubmissionTypes) MarshalJSON() ([]byte, error) {
 }
 
 func (s *SubmissionTypes) UnmarshalJSON(data []byte) error {
+	if len(data) == 0 {
+		return nil
+	}
+	if bytes.Equal(data, []byte(`null`)) {
+		return nil
+	}
 	var types []SubmissionType
+	if bytes.HasPrefix(data, []byte(`[`)) && bytes.HasSuffix(data, []byte(`]`)) {
+		types = make([]SubmissionType, 0)
+	}
 	for _, t := range strings.Split(strings.Trim(string(data), `["]`), ",") {
 		if len(t) == 0 {
 			continue
