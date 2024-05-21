@@ -73,7 +73,7 @@ type SubmissionSearchResponse struct {
 	RID                  string        `json:"rid,omitempty"`
 	RIDTTL               string        `json:"rid_ttl,omitempty"`
 	RIDTTLDuration       time.Duration `json:"-"`
-	SearchParams         any           `json:"search_params"`
+	SearchParams         []SearchParam `json:"search_params"`
 	KeywordList          []struct {
 		KeywordID        string    `json:"keyword_id"`
 		KeywordName      string    `json:"keyword_name"`
@@ -86,6 +86,12 @@ type SubmissionSearchResponse struct {
 		Updated          BooleanYN `json:"updated"`
 		Stars            string    `json:"stars"`
 	} `json:"submissions,omitempty"`
+}
+
+// SearchParam is the search parameters that were used to find these search results.
+type SearchParam struct {
+	Name string `json:"param_name"`
+	Type string `json:"param_type"`
 }
 
 type SubmissionType int
