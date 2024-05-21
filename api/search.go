@@ -6,8 +6,10 @@ import (
 	"fmt"
 	"github.com/ellypaws/inkbunny/api/utils"
 	"io"
+	"regexp"
 	"strconv"
 	"strings"
+	"time"
 )
 
 type SubmissionSearchRequest struct {
@@ -62,15 +64,16 @@ type SubmissionSearchRequest struct {
 }
 
 type SubmissionSearchResponse struct {
-	Sid                  string    `json:"sid"`
-	UserLocation         string    `json:"user_location"`
-	ResultsCountAll      IntString `json:"results_count_all"`
-	ResultsCountThisPage IntString `json:"results_count_thispage"`
-	PagesCount           IntString `json:"pages_count"`
-	Page                 IntString `json:"page"`
-	RID                  string    `json:"rid,omitempty"`
-	RIDTTL               string    `json:"rid_ttl,omitempty"`
-	SearchParams         any       `json:"search_params"`
+	Sid                  string        `json:"sid"`
+	UserLocation         string        `json:"user_location"`
+	ResultsCountAll      IntString     `json:"results_count_all"`
+	ResultsCountThisPage IntString     `json:"results_count_thispage"`
+	PagesCount           IntString     `json:"pages_count"`
+	Page                 IntString     `json:"page"`
+	RID                  string        `json:"rid,omitempty"`
+	RIDTTL               string        `json:"rid_ttl,omitempty"`
+	RIDTTLDuration       time.Duration `json:"-"`
+	SearchParams         any           `json:"search_params"`
 	KeywordList          []struct {
 		KeywordID        string    `json:"keyword_id"`
 		KeywordName      string    `json:"keyword_name"`
@@ -171,7 +174,39 @@ func (user Credentials) SearchSubmissions(req SubmissionSearchRequest) (Submissi
 		return SubmissionSearchResponse{}, err
 	}
 
+	if searchResp.RIDTTL != "" {
+		searchResp.RIDTTLDuration = TTLToDuration(searchResp.RIDTTL)
+	}
+
 	return searchResp, nil
+}
+
+var shortDuration = regexp.MustCompile(`\d+[smhdwy]`)
+
+func TTLToDuration(ttl string) time.Duration {
+	var d time.Duration
+	matches := shortDuration.FindAllString(strings.ReplaceAll(ttl, " ", ""), -1)
+	for _, match := range matches {
+		i, err := strconv.Atoi(match[:len(match)-1])
+		if err != nil {
+			continue
+		}
+		switch match[len(match)-1] {
+		case 's':
+			d += time.Second * time.Duration(i)
+		case 'm':
+			d += time.Minute * time.Duration(i)
+		case 'h':
+			d += time.Hour * time.Duration(i)
+		case 'd':
+			d += time.Hour * 24 * time.Duration(i)
+		case 'w':
+			d += time.Hour * 24 * 7 * time.Duration(i)
+		case 'y':
+			d += time.Hour * 24 * 365 * time.Duration(i)
+		}
+	}
+	return d
 }
 
 func (user Credentials) OwnSubmissions() (SubmissionSearchResponse, error) {
