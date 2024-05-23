@@ -41,6 +41,8 @@ func (o *OutputMode) UnmarshalJSON(data []byte) error {
 }
 
 // BooleanYN is a custom type to handle boolean values marshaled as "yes" or "no".
+// UnmarshalJSON can handle receiving "t", "f", "yes", "no", true, false (both as strings or booleans).
+// Typically, responses return "t" or "f" for true and false, while requests use Yes and No.
 type BooleanYN bool
 
 const (
