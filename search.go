@@ -250,6 +250,18 @@ func (s SubmissionSearchResponse) AllSubmissions() iter.Seq2[[]SubmissionSearch,
 	}
 }
 
+// Details returns the SubmissionDetails of the current page
+func (s SubmissionSearchResponse) Details() (SubmissionDetailsResponse, error) {
+	ids := make([]string, len(s.Submissions))
+	for i, v := range s.Submissions {
+		ids[i] = v.SubmissionID.String()
+	}
+	return s.client.Get().SubmissionDetails(SubmissionDetailsRequest{
+		SID:               s.SID,
+		SubmissionIDSlice: ids,
+	})
+}
+
 func (u *User) SearchSubmissions(req SubmissionSearchRequest) (SubmissionSearchResponse, error) {
 	if req.SID == "" {
 		if u.SID == "" {
