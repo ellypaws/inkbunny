@@ -216,6 +216,7 @@ func (s SubmissionSearchResponse) AllPages() iter.Seq2[SubmissionSearchResponse,
 				continue
 			}
 			request := SubmissionSearchRequest{
+				SID:  s.SID,
 				RID:  s.RID,
 				Page: i,
 			}
