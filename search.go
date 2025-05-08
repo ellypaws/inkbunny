@@ -73,13 +73,13 @@ type SubmissionSearchRequest struct {
 	// Search Keywords for the chosen text.
 	// Note: This is ON (Yes) by default, and is the standard field that text searches look in, unless specified otherwise.
 	// Note: At least one of keywords, title or description must be set to Yes for text search to work.
-	Keywords types.BooleanYN `json:"keywords,omitempty" query:"keywords"`
+	Keywords *types.BooleanYN `json:"keywords,omitempty" query:"keywords"`
 	// Search Title for the chosen text.
 	// Note: At least one of keywords, title or description must be set to Yes for text search to work.
-	Title types.BooleanYN `json:"title,omitempty" query:"title"`
+	Title *types.BooleanYN `json:"title,omitempty" query:"title"`
 	// Search the Description AND Story fields for the chosen text.
 	// Note: At least one of keywords, title or description must be set to Yes for text search to work.
-	Description types.BooleanYN `json:"description,omitempty" query:"description"`
+	Description *types.BooleanYN `json:"description,omitempty" query:"description"`
 	// Search for the chosen text in the MD5 Checksum/hash of the Initial.
 	// (as uploaded and before any conversion), Full (may have metadata removed and
 	// optimised for lossless compression), Large (also known as Screen), Small, or
@@ -92,7 +92,7 @@ type SubmissionSearchRequest struct {
 	//	* See [MD5 Checksums] for more information on how MD5 is used in Inkbunny.
 	//
 	// [MD5 Checksums]: https://wiki.inkbunny.net/wiki/MD5
-	MD5 types.BooleanYN `json:"md5,omitempty" query:"md5"`
+	MD5 *types.BooleanYN `json:"md5,omitempty" query:"md5"`
 	// Keyword ID to search for. Overrides text search and all its options.
 	KeywordID types.IntString `json:"keyword_id,omitempty" query:"keyword_id"`
 	// Limit results to those uploaded/owned by user with this Username only. Must be exact, but is case-insensitive. May includes non-published submissions if run by a moderator.
