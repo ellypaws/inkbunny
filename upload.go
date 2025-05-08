@@ -200,7 +200,7 @@ func uploadMultiple(c *Client, r UploadRequest) (UploadResponse, error) {
 	w := multipart.NewWriter(pipeWriter)
 	go func() {
 		var lastErr error
-		defer pipeWriter.CloseWithError(lastErr)
+		defer func() { pipeWriter.CloseWithError(lastErr) }()
 		err := utils.StructToMultipartWriter(w, r)
 		if err != nil {
 			lastErr = err
@@ -249,7 +249,7 @@ func uploadZip(c *Client, r UploadRequest) (UploadResponse, error) {
 	w := multipart.NewWriter(pipeWriter)
 	go func() {
 		var lastErr error
-		defer pipeWriter.CloseWithError(lastErr)
+		defer func() { pipeWriter.CloseWithError(lastErr) }()
 		err := utils.StructToMultipartWriter(w, r)
 		if err != nil {
 			lastErr = err
@@ -297,7 +297,7 @@ func uploadSingle(c *Client, r UploadRequest, index int) (UploadResponse, error)
 	w := multipart.NewWriter(pipeWriter)
 	go func() {
 		var lastErr error
-		defer pipeWriter.CloseWithError(lastErr)
+		defer func() { pipeWriter.CloseWithError(lastErr) }()
 		err := utils.StructToMultipartWriter(w, r)
 		if err != nil {
 			lastErr = err
