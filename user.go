@@ -73,6 +73,7 @@ func (u *User) Logout() error {
 	if response.SID != u.SID {
 		return ErrUnexpectedSID
 	}
+	*u = User{client: u.client}
 	return nil
 }
 
