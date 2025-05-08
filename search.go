@@ -31,10 +31,13 @@ type SubmissionSearchRequest struct {
 	// Attempting to access a results set that has been removed will throw an error. See the [Error Codes] section in this document.
 	//
 	// [Error Codes]: https://wiki.inkbunny.net/wiki/API#Error_Codes
-	RID                string          `json:"rid,omitempty" query:"rid"`
-	SubmissionIDsOnly  types.BooleanYN `json:"submission_ids_only,omitempty" query:"submission_ids_only"`
+	RID               string          `json:"rid,omitempty" query:"rid"`
+	SubmissionIDsOnly types.BooleanYN `json:"submission_ids_only,omitempty" query:"submission_ids_only"`
+	// Number of submissions to return per page of results.
+	// Integer from 0 to 100. Default: 30.
 	SubmissionsPerPage types.IntString `json:"submissions_per_page,omitempty" query:"submissions_per_page"`
-	Page               types.IntString `json:"page,omitempty" query:"page"` // Results page number to return. Default: 1.
+	// Results page number to return. Default: 1.
+	Page types.IntString `json:"page,omitempty" query:"page"`
 	// Not to be confused with Text. This is a boolean value to return list of Top 100 Keywords.
 	// Return list of Top 100 Keywords associated with all submissions on current results page.
 	// Note that this list includes both officially assigned keywords and also keywords
@@ -44,8 +47,15 @@ type SubmissionSearchRequest struct {
 	// Useful when you are just returning Top Keywords or Submission Counts for searches, and you don't want all the other submission data.
 	NoSubmissions types.BooleanYN `json:"no_submissions,omitempty" query:"no_submissions"`
 	// Return a Results ID for this search, which can then be used in Mode 2 (By setting the RID) to page through the results without running the search again for each page.
-	GetRID        types.BooleanYN     `json:"get_rid,omitempty" query:"get_rid"`
-	FieldJoinType types.FieldJoinType `json:"field_join_type,omitempty" query:"field_join_type"` // "or" or "and"
+	GetRID types.BooleanYN `json:"get_rid,omitempty" query:"get_rid"`
+
+	// Search Condition Parameters (Only used in Mode 1)
+	// Note: If you send a Results ID (the parameter "rid", above) then the search runs in Mode 2 and these Search Condition parameters are ignored.
+
+	// FieldJoinType Defines the union between keywords, description, writing and title search fields. Possible values are "or", "and".
+	//   - "or" will return submissions found that have the search text in any one of the chosen fields (The default and recommended settings).
+	//   - "and" will ONLY return submissions that have the search text found in ALL of the chosen fields (unusual and not recommended).
+	FieldJoinType types.FieldJoinType `json:"field_join_type,omitempty" query:"field_join_type"`
 	// Text to search chosen fields for. eg "dragon", "wolf", etc.
 	// A Full Text search is performed using this string (see the meaning of Full Text searches in the Postgresql Documentation).
 	// The characters "_" and "," are converted to spaces automatically.
@@ -56,7 +66,9 @@ type SubmissionSearchRequest struct {
 	// Values: (Any text string).
 	//
 	// Default: n/a. Required: No
-	Text           string         `json:"text,omitempty" query:"text"`
+	Text string `json:"text,omitempty" query:"text"`
+	// Join type for the words in a string of text being searched for. "and" finds all the words together in the chosen field (default), "or" finds any one of the words, "exact" find the exact phrase.
+	// Note: This property has no effect on searching for MD5 strings (property "MD5" set to "yes"), which always assumes "or" when multiple MD5 Hashes are given.
 	StringJoinType types.JoinType `json:"string_join_type,omitempty" query:"string_join_type"`
 	// Search Keywords for the chosen text.
 	// Note: This is ON (Yes) by default, and is the standard field that text searches look in, unless specified otherwise.
@@ -80,17 +92,65 @@ type SubmissionSearchRequest struct {
 	//	* See [MD5 Checksums] for more information on how MD5 is used in Inkbunny.
 	//
 	// [MD5 Checksums]: https://wiki.inkbunny.net/wiki/MD5
-	MD5               types.BooleanYN   `json:"md5,omitempty" query:"md5"`
-	KeywordID         types.IntString   `json:"keyword_id,omitempty" query:"keyword_id"`
-	Username          string            `json:"username,omitempty" query:"username"`
-	UserID            types.IntString   `json:"user_id,omitempty" query:"user_id"`
-	FavsUserID        types.IntString   `json:"favs_user_id,omitempty" query:"favs_user_id"`
-	UnreadSubmissions types.BooleanYN   `json:"unread_submissions,omitempty" query:"unread_submissions"`
-	Type              SubmissionTypes   `json:"type,omitempty" query:"type"`
-	Sales             types.SalesFilter `json:"sales,omitempty" query:"sales"` // Values: forsale, digital, prints
-	PoolID            types.IntString   `json:"pool_id,omitempty" query:"pool_id"`
-	OrderBy           types.OrderBy     `json:"orderby,omitempty" query:"orderby"` // Values: create_datetime, unread_datetime, views, total_print_sales, total_digital_sales, total_sales, username, fav_datetime, fav_stars, pool_order. Default: create_datetime.
-	DaysLimit         types.IntString   `json:"dayslimit,omitempty" query:"dayslimit"`
+	MD5 types.BooleanYN `json:"md5,omitempty" query:"md5"`
+	// Keyword ID to search for. Overrides text search and all its options.
+	KeywordID types.IntString `json:"keyword_id,omitempty" query:"keyword_id"`
+	// Limit results to those uploaded/owned by user with this Username only. Must be exact, but is case-insensitive. May includes non-published submissions if run by a moderator.
+	Username string `json:"username,omitempty" query:"username"`
+	// Limit results to those uploaded/owned by user with this User ID. May include non-published submissions if run by the relevant user, or a moderator.
+	UserID types.IntString `json:"user_id,omitempty" query:"user_id"`
+	// Limit results to favorites of the user with this User ID only.
+	FavsUserID types.IntString `json:"favs_user_id,omitempty" query:"favs_user_id"`
+	// Boolean. Limit results to those which are New Unread Submissions for the
+	// currently logged in user.
+	//
+	// Note: This will return anything in the user's
+	// unread submissions list, even if it would normally be blocked by ratings or
+	// keywords. Items only end up in the unread submissions list in the first place
+	// if they pass the blocking checks. So blocked items would only be returned
+	// here if they had their keywords or ratings changed after they were added to
+	// this user's list.
+	UnreadSubmissions types.BooleanYN `json:"unread_submissions,omitempty" query:"unread_submissions"`
+	// Limit results to submissions with this type id. Multiple type ids are allowed.
+	// Available IDs are
+	//  1. Picture/Pinup
+	//  2. Sketch
+	//  3. Picture Series
+	//  4. Comic
+	//  5. Portfolio
+	//  6. Shockwave/Flash - Animation
+	//  7. Shockwave/Flash - Interactive
+	//  8. Video - Feature Length
+	//  9. Video - Animation/3D/CGI
+	//  10. Music - Single Track
+	//  11. Music - Album
+	//  12. Writing - Document
+	//  13. Character Sheet
+	//  14. Photography - Fursuit/Sculpture/Jewelry/etc
+	Type SubmissionTypes `json:"type,omitempty" query:"type"`
+	// SalesFilter for SubmissionSearchRequest.
+	//
+	// Filter by sales status. Possible options are "forsale" (for sale by any
+	// method), "digital" (digital sales), "prints" (print sales).
+	// Deprecated: Sales are no longer part of Inkbunny.
+	Sales  types.SalesFilter `json:"sales,omitempty" query:"sales"`
+	PoolID types.IntString   `json:"pool_id,omitempty" query:"pool_id"`
+	// Order search results by selected criteria.
+	// Possible values are:
+	//  - create_datetime - date submission was uploaded.
+	//  - last_file_update_datetime - date the most recent file attached to the submission was added/changed. Submissions with no attached files will be listed last.
+	//  - unread_datetime – DESCENDING date that submission was added to the user's unread submissions list (newest first). Only for use when "unread_submissions=yes" is set.
+	//  - unread_datetime_reverse – ASCENDING date that submission was added to the user's unread submissions list (oldest first). Only for use when "unread_submissions=yes" is set.
+	//  - views – Number of times submission has been viewed.
+	//  - total_print_sales – Number of times submission has sold as a print.
+	//  - total_digital_sales – Number of times submission has sold as a download.
+	//  - total_sales – Number of times a submission has been sold in total, of any sale type.
+	//  - username - artist name.
+	//  - fav_datetime - date image was set as a favorite by target user. Only for use when "favs_user_id" is set.
+	//  - fav_stars - number of stars assigned to favorite by target user. Only for use when "favs_user_id" is set.
+	//  - pool_order - submission order specified for the target pool. Only for use when "pool_id" is set.
+	OrderBy   types.OrderBy   `json:"orderby,omitempty" query:"orderby"`
+	DaysLimit types.IntString `json:"dayslimit,omitempty" query:"dayslimit"`
 	// Sort results randomly. This is done after all other filters and sort orders
 	// are applied. This can be used in conjunction with "orderby". You can order
 	// results with OrderBy, limit the number returned with other filters like
@@ -99,14 +159,23 @@ type SubmissionSearchRequest struct {
 	// then with "random=yes" those top 100 are sorted randomly AFTER the other
 	// limits and conditions are used. Does your head hurt? Mine does.
 	Random types.BooleanYN `json:"random,omitempty" query:"random"`
-	// Scraps Set how submissions marked as “Scraps” are returned.
+	// Scraps Set how submissions marked as "Scraps" are returned.
 	// Possible values are:
 	// 	both – show submissions from Scraps and Main galleries.
 	// 	no – Do not show Scraps. Shows only submissions from Main galleries.
 	// 	only – Show only submissions from Scraps galleries, not Main galleries.
-	Scraps     string          `json:"scraps,omitempty" query:"scraps"`
+	Scraps Scraps `json:"scraps,omitempty" query:"scraps"`
+	// Limit number of returned results. Minimum is 1. Maximum is 50000.
 	CountLimit types.IntString `json:"count_limit,omitempty" query:"count_limit"`
 }
+
+type Scraps = string
+
+const (
+	ScrapsBoth Scraps = "both"
+	ScrapsNo   Scraps = "no"
+	ScrapsOnly Scraps = "only"
+)
 
 type SubmissionSearchResponse struct {
 	SID                  string             `json:"sid"`

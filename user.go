@@ -80,8 +80,8 @@ func (u *User) Logout() error {
 //     it will affect the current session only.
 //     The changes to their allowed ratings will not be saved to their account.
 //   - Members can still choose to block their work from Guest users, regardless of the Guests' rating choice, so some work may still not appear for Guests even with all rating options turned on.
-//   - New Guest sessions and newly created accounts have the tag “Violence - Mild violence” enabled by default, so images tagged with this will be visible.
-//     However, when calling this script, that tag will be set to “off”
+//   - New Guest sessions and newly created accounts have the tag "Violence - Mild violence" enabled by default, so images tagged with this will be visible.
+//     However, when calling this script, that tag will be set to "off"
 //     unless you explicitly keep it activated with the parameter Ratings{MildViolence: true}.
 //
 // You can also call types.ParseMaskU if you want to use a bitmask.
