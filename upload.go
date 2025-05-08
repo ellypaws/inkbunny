@@ -154,7 +154,6 @@ func (u *User) Upload(r UploadRequest) (UploadResponse, error) {
 			if err != nil {
 				return err
 			}
-			lastResp.cancel = nil
 			return nil
 		}
 	}
@@ -183,7 +182,11 @@ func (u *UploadResponse) Delete() error {
 // Instead, use UploadRequest.Context along with context.WithCancel to cancel the upload.
 func (u *UploadResponse) Cancel() error {
 	if u.cancel != nil {
-		return u.cancel()
+		err := u.cancel()
+		if err != nil {
+			return err
+		}
+		u.cancel = nil
 	}
 	return ErrAlreadyCancelled
 }
