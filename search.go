@@ -207,6 +207,8 @@ func (s *SubmissionTypes) UnmarshalJSON(data []byte) error {
 }
 
 // AllPages returns a sequence of all the pages in a submission search response, repeatedly calling Client.SearchSubmissions.
+// Make sure you set SubmissionSearchRequest.GetRID to types.Yes prior or the other pages might not have the correct results.
+// Additionally, one should also check SubmissionSearchResponse.RIDTTLDuration or SubmissionSearchResponse.RIDExpiry.
 func (s SubmissionSearchResponse) AllPages() iter.Seq2[SubmissionSearchResponse, error] {
 	return func(yield func(SubmissionSearchResponse, error) bool) {
 		for i := range s.PagesCount.Iter() {
@@ -229,6 +231,8 @@ func (s SubmissionSearchResponse) AllPages() iter.Seq2[SubmissionSearchResponse,
 }
 
 // AllSubmissions returns a sequence of all submission lists across all pages of the search results, repeatedly calling Client.SearchSubmissions.
+// Make sure you set SubmissionSearchRequest.GetRID to types.Yes prior or the other pages might not have the correct results.
+// Additionally, one should also check SubmissionSearchResponse.RIDTTLDuration or SubmissionSearchResponse.RIDExpiry.
 func (s SubmissionSearchResponse) AllSubmissions() iter.Seq2[[]SubmissionSearch, error] {
 	return func(yield func([]SubmissionSearch, error) bool) {
 		for i := range s.PagesCount.Iter() {
