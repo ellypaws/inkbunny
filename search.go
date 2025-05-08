@@ -118,6 +118,7 @@ type SubmissionSearchResponse struct {
 	RID                  string             `json:"rid,omitempty"`
 	RIDTTL               string             `json:"rid_ttl,omitempty"`
 	RIDTTLDuration       time.Duration      `json:"-"`
+	RIDExpiry            time.Time          `json:"-"`
 	SearchParams         []SearchParam      `json:"search_params"`
 	KeywordList          []KeywordList      `json:"keyword_list,omitempty"`
 	Submissions          []SubmissionSearch `json:"submissions,omitempty"`
@@ -281,6 +282,7 @@ func (c *Client) SearchSubmissions(req SubmissionSearchRequest) (SubmissionSearc
 
 	if response.RIDTTL != "" {
 		response.RIDTTLDuration = TTLToDuration(response.RIDTTL)
+		response.RIDExpiry = time.Now().Add(response.RIDTTLDuration)
 	}
 
 	return response, err
