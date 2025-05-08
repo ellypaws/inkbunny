@@ -30,6 +30,7 @@ var (
 	ErrNotLoggedIn   = errors.New("not logged in")
 	ErrEmptySID      = errors.New("SID is empty")
 	ErrUnexpectedSID = errors.New("unexpected session ID from response")
+	ErrEmptySubID    = errors.New("submission id is empty")
 )
 
 func Login(username, password string) (*User, error) {

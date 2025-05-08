@@ -4,10 +4,34 @@ import (
 	"io"
 
 	"github.com/ellypaws/inkbunny/types"
+	"github.com/ellypaws/inkbunny/utils"
 )
 
+// SubmissionEditRequest represents a request to edit an existing submission on Inkbunny.
+//
+// Field behavior:
+// - Required fields: SID and SubmissionID
+// - Optional fields: Use pointers for optional string and boolean fields
+//
+// Nil vs Empty values:
+// - Nil pointers (*string, *types.BooleanYN): Field will be omitted from the request (no change)
+// - Empty string: Will clear/remove the existing value
+// - Empty slice (Keywords): Will remove all keywords if included in request
+//
+// Examples:
+// - To leave Title unchanged: Title: nil
+// - To clear Title: Title: ptr("")
+// - To set a new Title: Title: ptr("New Title")
+// - To remove all Keywords: Keywords: []string{} (empty slice)
+// - To preserve Keywords: Don't include Keywords field (nil)
+//
+// Warning: Any field that is sent in the request (even if empty) will replace the existing value.
+// To preserve existing values, use nil for pointer fields and don't include non-pointer fields.
 type SubmissionEditRequest struct {
-	SID          string          `json:"sid"`
+	// SID is the session ID obtained from login. Required.
+	// Can be left blank if calling from User, otherwise it will override.
+	SID string `json:"sid"`
+	// SubmissionID is the ID of the submission to edit. Required.
 	SubmissionID types.IntString `json:"submission_id"`
 	Title        *string         `json:"title,omitempty"`
 	Description  *string         `json:"desc,omitempty"`
@@ -36,10 +60,13 @@ type SubmissionEditRequest struct {
 	// 2 - Send the Full Picture (it will send a proportional, 920px-wide version of the full picture)
 	// Values: (Twitter Image Preference ID). Default: set on upload to current user preference, which defaults to 1. Required: No
 	TwitterImagePref *int `json:"twitter_image_pref,omitempty"`
-	// Change Public/Non-Public status of the submission
+	// Change Public/Non-Public status of the submission.
+	// Setting this to true will also set Notify to true by default unless overridden.
 	Public *types.BooleanYN `json:"visibility,omitempty"`
+	// Notify notifies watchers if it is the first time the submission has been set public.
 	// Will only announce the first time a submission is set to Public, and if Public is set to true.
-	Announce *types.BooleanYN `json:"-"`
+	// Default (nil) is true if Public is set to true.
+	Notify *types.BooleanYN `json:"-"`
 	// Keywords for this submission. Keyword entries must be separated by commas or
 	// spaces. When adding new keywords, all the old keywords must be specified here
 	// too. The entry here entirely REPLACES the existing keywords list for this
@@ -56,4 +83,44 @@ type SubmissionEditRequest struct {
 
 	GuestBlock  *types.BooleanYN `json:"guest_block,omitempty"`
 	FriendsOnly *types.BooleanYN `json:"friends_only,omitempty"`
+}
+
+// EditSubmissionResponse represents the response from the edit_submission API endpoint.
+type EditSubmissionResponse struct {
+	SubmissionID       types.IntString `json:"submission_id"` // Submission ID of the submission that was edited.
+	TwitterAuthSuccess types.BooleanYN `json:"twitter_authentication_success"`
+}
+
+// EditSubmission edits an existing submission on Inkbunny based on the provided request parameters.
+// This method requires a valid session ID (SID) and submission ID.
+func (u *User) EditSubmission(req SubmissionEditRequest) (EditSubmissionResponse, error) {
+	if req.SID == "" {
+		req.SID = u.SID
+	}
+
+	return u.Client().EditSubmission(req)
+}
+
+// EditSubmission edits an existing submission on Inkbunny based on the provided request parameters.
+// This method requires a valid session ID (SID) and submission ID.
+func (c *Client) EditSubmission(req SubmissionEditRequest) (EditSubmissionResponse, error) {
+	if req.SID == "" {
+		return EditSubmissionResponse{}, ErrEmptySID
+	}
+	if req.SubmissionID == 0 {
+		return EditSubmissionResponse{}, ErrEmptySubID
+	}
+
+	values := utils.StructToUrlValues(req)
+	if req.Notify != nil && !req.Notify.Bool() && req.Public != nil && req.Public.Bool() {
+		values.Set("visibility", "yes_nowatch")
+	}
+
+	return PostDecode[EditSubmissionResponse](c, ApiUrl("editsubmission"), values)
+}
+
+// EditSubmission edits an existing submission on Inkbunny based on the provided request parameters.
+// This method requires a valid session ID (SID) and submission ID.
+func EditSubmission(req SubmissionEditRequest) (EditSubmissionResponse, error) {
+	return DefaultClient.EditSubmission(req)
 }
