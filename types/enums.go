@@ -186,7 +186,7 @@ const (
 
 // SalesFilter for SubmissionSearchRequest.
 //
-//	Filter by sales status. Possible options are "forsale" (for sale by any method), "digital" (digital sales), "prints" (print sales).
+// Filter by sales status. Possible options are "forsale" (for sale by any method), "digital" (digital sales), "prints" (print sales).
 type SalesFilter = string
 
 const (
