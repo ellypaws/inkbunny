@@ -240,7 +240,7 @@ func (u *User) SubmissionDetails(req SubmissionDetailsRequest) (SubmissionDetail
 
 func (c *Client) SubmissionDetails(req SubmissionDetailsRequest) (SubmissionDetailsResponse, error) {
 	if req.SID == "" {
-		return SubmissionDetailsResponse{}, ErrNotLoggedIn
+		return SubmissionDetailsResponse{}, ErrEmptySID
 	}
 	if len(req.SubmissionIDSlice) > 0 {
 		if req.SubmissionIDs != "" {
@@ -256,6 +256,7 @@ func GetSubmissionDetails(req SubmissionDetailsRequest) (SubmissionDetailsRespon
 	return DefaultClient.SubmissionDetails(req)
 }
 
+// SubmissionFavorites retrieves the list of users who have favorited a specific submission.
 func (u *User) SubmissionFavorites(id types.IntString) (SubmissionFavoritesResponse, error) {
 	if u.SID == "" {
 		return SubmissionFavoritesResponse{}, ErrNotLoggedIn

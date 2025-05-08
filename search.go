@@ -339,7 +339,7 @@ func (s SubmissionSearchResponse) Details() (SubmissionDetailsResponse, error) {
 func (u *User) SearchSubmissions(req SubmissionSearchRequest) (SubmissionSearchResponse, error) {
 	if req.SID == "" {
 		if u.SID == "" {
-			return SubmissionSearchResponse{}, ErrEmptySID
+			return SubmissionSearchResponse{}, ErrNotLoggedIn
 		}
 		req.SID = u.SID
 	}
@@ -348,6 +348,9 @@ func (u *User) SearchSubmissions(req SubmissionSearchRequest) (SubmissionSearchR
 }
 
 func (c *Client) SearchSubmissions(req SubmissionSearchRequest) (SubmissionSearchResponse, error) {
+	if req.SID == "" {
+		return SubmissionSearchResponse{}, ErrEmptySID
+	}
 	response, err := PostDecode[SubmissionSearchResponse](c, ApiUrl("search"), req)
 	if err != nil {
 		return response, err

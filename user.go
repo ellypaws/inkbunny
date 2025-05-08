@@ -61,7 +61,7 @@ func (u *User) Logout() error {
 		return ErrNilUser
 	}
 	if u.SID == "" {
-		return ErrEmptySID
+		return ErrNotLoggedIn
 	}
 	response, err := PostDecode[types.LogoutResponse](u.Client(), ApiUrl("logout"), url.Values{"sid": {u.SID}})
 	if err != nil {
@@ -92,7 +92,7 @@ func (u *User) ChangeRatings(ratings types.Ratings) error {
 		return ErrNilUser
 	}
 	if u.SID == "" {
-		return ErrEmptySID
+		return ErrNotLoggedIn
 	}
 	values := utils.StructToUrlValues(ratings)
 	values.Set("sid", u.SID)

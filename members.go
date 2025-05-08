@@ -25,7 +25,7 @@ func SearchMembers(username string) ([]types.Autocomplete, error) {
 // GetWatching gets the watchlist of a logged-in user
 func (u *User) GetWatching() ([]types.UsernameID, error) {
 	if u.SID == "" {
-		return nil, ErrEmptySID
+		return nil, ErrNotLoggedIn
 	}
 	type results struct {
 		Watches []types.UsernameID `json:"watches"`
