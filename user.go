@@ -69,7 +69,7 @@ func (u *User) Logout() error {
 	if response.Logout != "success" {
 		return fmt.Errorf("logout failed, unexpected response: %s", response.Logout)
 	}
-	if response.SID != response.SID {
+	if response.SID != u.SID {
 		return ErrUnexpectedSID
 	}
 	return nil
