@@ -104,61 +104,72 @@ func (u *UploadStatus) UnmarshalJSON(data []byte) error {
 // Upload uploads one or more files (and optional thumbnails) to an Inkbunny submission.
 // If multiple FileUpload entries are provided, each is sent in sequence, using the returned submission_id from the previous upload for subsequent calls.
 // URL: https://inkbunny.net/api_upload.php
-func (u *User) Upload(r UploadRequest) (UploadResponse, error) {
-	if r.SID == "" {
+func (u *User) Upload(req UploadRequest) (UploadResponse, error) {
+	if req.SID == "" {
 		if u.SID == "" {
-			return UploadResponse{}, ErrEmptySID
+			return UploadResponse{}, ErrNotLoggedIn
 		}
-		r.SID = u.SID
+		req.SID = u.SID
 	}
-	if len(r.Files) == 0 && r.ZipFile == nil {
+	return u.Client().Upload(req)
+}
+
+func (c *Client) Upload(req UploadRequest) (UploadResponse, error) {
+	if req.SID == "" {
+		return UploadResponse{}, ErrEmptySID
+	}
+	if len(req.Files) == 0 && req.ZipFile == nil {
 		return UploadResponse{}, errors.New("no files to upload")
 	}
 
-	lastResp := UploadResponse{SID: r.SID}
-	shouldSingle := r.ZipFile != nil || slices.ContainsFunc(r.Files, func(f FileUpload) bool {
+	lastResp := UploadResponse{SID: req.SID}
+	shouldSingle := req.ZipFile != nil || slices.ContainsFunc(req.Files, func(f FileUpload) bool {
 		return f.Thumbnail != nil || f.Replace != ""
 	})
 	if shouldSingle {
-		if r.ZipFile != nil {
-			resp, err := uploadZip(u.Client(), r)
+		if req.ZipFile != nil {
+			resp, err := uploadZip(c, req)
 			if err != nil {
 				return resp, fmt.Errorf("could not upload zip: %w", err)
 			}
-			r.SubmissionID = resp.SubmissionID
+			req.SubmissionID = resp.SubmissionID
 		}
-		for i := range r.Files {
+		for i := range req.Files {
 			if i > 0 {
 				if lastResp.SubmissionID == "" {
 					return lastResp, ErrResponseNoSubmissionID
 				}
-				r.SubmissionID = lastResp.SubmissionID
+				req.SubmissionID = lastResp.SubmissionID
 			}
-			resp, err := uploadSingle(u.Client(), r, i)
+			resp, err := uploadSingle(c, req, i)
 			if err != nil {
 				return resp, err
 			}
 			lastResp = resp
 		}
 	} else {
-		resp, err := uploadMultiple(u.Client(), r)
+		resp, err := uploadMultiple(c, req)
 		if err != nil {
 			return resp, err
 		}
 		lastResp = resp
 	}
-	if r.ProgressKey != "" {
-		lastResp.ProgressKey = &r.ProgressKey
+	if req.ProgressKey != "" {
+		lastResp.ProgressKey = &req.ProgressKey
 		lastResp.cancel = func() error {
-			_, err := UploadProgress(u.Client(), r.ProgressKey, true)
+			_, err := UploadProgress(c, req.ProgressKey, true)
 			if err != nil {
 				return err
 			}
 			return nil
 		}
 	}
-	lastResp.client = u.Client()
+	lastResp.client = c
 	return lastResp, nil
+}
+
+func Upload(req UploadRequest) (UploadResponse, error) {
+	return DefaultClient.Upload(req)
 }
 
 func (u *UploadResponse) Delete() error {
