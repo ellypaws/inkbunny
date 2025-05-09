@@ -35,7 +35,7 @@ type UploadRequest struct {
 	ProgressKey  string       `json:"progress_key,omitempty"` // Deprecated: currently broken in the API
 	Notify       bool         `json:"notify,omitempty"`
 	Files        []FileUpload `json:"-"`
-	ZipFile      *FileContent `json:"-"` // Deprecated: currently broken in the API
+	ZipFile      *FileContent `json:"-"`
 }
 
 type UploadResponse struct {

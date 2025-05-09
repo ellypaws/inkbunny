@@ -343,10 +343,10 @@ if err != nil {
 
 As of May 9, 2025, the following API methods are broken or deprecated:
 
-- **ZIP File Upload**: The `ZipFile` field in `UploadRequest` is currently broken in the API.
-- **Upload Progress**: The `ProgressKey` field in `UploadRequest` and the `UploadProgress` function are currently broken
+- [x] **ZIP File Upload**: Fixed on May 9, 2025 on Inbunny's side. ~~The `ZipFile` field in `UploadRequest` is currently broken in the API.~~
+- [ ] **Upload Progress**: The `ProgressKey` field in `UploadRequest` and the `UploadProgress` function are currently broken
   in the API.
-- **Cancel Upload**: The `Cancel` method of `UploadResponse` is deprecated as it uses the broken `UploadProgress`
+- [ ] **Cancel Upload**: The `Cancel` method of `UploadResponse` is deprecated as it uses the broken `UploadProgress`
   function.
 
 > [!WARNING]  
