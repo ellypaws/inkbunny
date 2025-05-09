@@ -132,6 +132,7 @@ func (c *Client) Upload(req UploadRequest) (UploadResponse, error) {
 			if err != nil {
 				return resp, fmt.Errorf("could not upload zip: %w", err)
 			}
+			lastResp = resp
 			req.SubmissionID = resp.SubmissionID
 		}
 		for i := range req.Files {
