@@ -202,7 +202,7 @@ func (f *FalsyString) UnmarshalJSON(data []byte) error {
 	case "null", "false", "f":
 		return nil
 	default:
-		return json.Unmarshal(data, f)
+		return json.Unmarshal(data, (*string)(f))
 	}
 }
 
