@@ -166,7 +166,7 @@ func writeFields(writer *multipart.Writer, v reflect.Value) error {
 
 // ParseResponse parses the HTTP response and returns the decoded value of type T.
 // It checks [http.Response.StatusCode], decodes and checks if the [http.Response.Body]
-// decodes into types.ErrorResponse, and finally decodes into T if no errors are returned.
+// decodes into ErrorResponse, and finally decodes into T if no errors are returned.
 // ParseResponse also calls [io.Closer.Close] on the Body.
 func parseResponse[T any](response *http.Response) (T, error) {
 	var t T
@@ -180,6 +180,7 @@ func parseResponse[T any](response *http.Response) (T, error) {
 		return t, err
 	}
 
+	// Inkbunny returns http.StatusOK for errors, so check for ErrorResponse first
 	errResponse, err := decodeBytes[ErrorResponse](bin)
 	if err != nil {
 		return t, err
