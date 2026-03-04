@@ -21,25 +21,25 @@ type SubmissionDetailsRequest struct {
 
 // SubmissionBasic combines elements common in SubmissionSearch and SubmissionDetails
 type SubmissionBasic struct {
-	SubmissionID     IntString `json:"submission_id"`
-	Hidden           BooleanYN `json:"hidden,omitempty"`
-	Username         string    `json:"username,omitempty"`
-	UserID           IntString `json:"user_id,omitempty"`
-	CreateDateSystem string    `json:"create_datetime,omitempty"`
-	CreateDateUser   string    `json:"create_datetime_usertime,omitempty"`
-	UpdateDateSystem string    `json:"last_file_update_datetime,omitempty"`
-	UpdateDateUser   string    `json:"last_file_update_datetime_usertime,omitempty"`
-	FileName         string    `json:"file_name,omitempty"`
-	LatestFileName   string    `json:"latest_file_name,omitempty"`
-	Title            string    `json:"title,omitempty"`
-	Deleted          BooleanYN `json:"deleted,omitempty"`
-	Public           BooleanYN `json:"public,omitempty"`
-	MimeType         string    `json:"mimetype,omitempty"`
-	LatestMimeType   string    `json:"latest_mimetype,omitempty"`
-	PageCount        IntString `json:"pagecount,omitempty"`
-	RatingID         IntString `json:"rating_id,omitempty"`
-	RatingName       string    `json:"rating_name,omitempty"`
-	FileURL                    // FileURL is the Full URL of the (SIZE) asset for the PRIMARY file of this submission. SIZE can be one of "full, screen, preview".
+	SubmissionID     IntString   `json:"submission_id"`
+	Hidden           BooleanYN   `json:"hidden,omitempty"`
+	Username         string      `json:"username,omitempty"`
+	UserID           IntString   `json:"user_id,omitempty"`
+	CreateDateSystem string      `json:"create_datetime,omitempty"`
+	CreateDateUser   string      `json:"create_datetime_usertime,omitempty"`
+	UpdateDateSystem string      `json:"last_file_update_datetime,omitempty"`
+	UpdateDateUser   string      `json:"last_file_update_datetime_usertime,omitempty"`
+	FileName         FalsyString `json:"file_name,omitempty"`
+	LatestFileName   FalsyString `json:"latest_file_name,omitempty"`
+	Title            string      `json:"title,omitempty"`
+	Deleted          BooleanYN   `json:"deleted,omitempty"`
+	Public           BooleanYN   `json:"public,omitempty"`
+	MimeType         string      `json:"mimetype,omitempty"`
+	LatestMimeType   string      `json:"latest_mimetype,omitempty"`
+	PageCount        IntString   `json:"pagecount,omitempty"`
+	RatingID         IntString   `json:"rating_id,omitempty"`
+	RatingName       string      `json:"rating_name,omitempty"`
+	FileURL                      // FileURL is the Full URL of the (SIZE) asset for the PRIMARY file of this submission. SIZE can be one of "full, screen, preview".
 	Thumbs
 	LatestThumbs
 	SubmissionTypeID IntString `json:"submission_type_id,omitempty"`
@@ -122,9 +122,9 @@ type FileMD5 struct {
 }
 
 type FileURL struct {
-	FileURLFull    string `json:"file_url_full,omitempty"`
-	FileURLScreen  string `json:"file_url_screen,omitempty"`
-	FileURLPreview string `json:"file_url_preview,omitempty"`
+	FileURLFull    FalsyString `json:"file_url_full,omitempty"`
+	FileURLScreen  FalsyString `json:"file_url_screen,omitempty"`
+	FileURLPreview FalsyString `json:"file_url_preview,omitempty"`
 }
 
 type Pool struct {

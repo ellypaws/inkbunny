@@ -194,3 +194,18 @@ const (
 	SalesFilterDigital SalesFilter = "digital"
 	SalesFilterPrints  SalesFilter = "prints"
 )
+
+type FalsyString string
+
+func (f *FalsyString) UnmarshalJSON(data []byte) error {
+	switch string(data) {
+	case "null", "false", "f":
+		return nil
+	default:
+		return json.Unmarshal(data, f)
+	}
+}
+
+func (f FalsyString) String() string {
+	return string(f)
+}
