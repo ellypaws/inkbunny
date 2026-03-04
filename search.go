@@ -8,13 +8,11 @@ import (
 	"strconv"
 	"strings"
 	"time"
-
-	"github.com/ellypaws/inkbunny/types"
 )
 
 type SubmissionSearchRequest struct {
-	SID        string           `json:"sid" query:"sid"`
-	OutputMode types.OutputMode `json:"output_mode,omitempty" query:"output_mode"`
+	SID        string     `json:"sid" query:"sid"`
+	OutputMode OutputMode `json:"output_mode,omitempty" query:"output_mode"`
 	// Setting an RID uses Mode 2: Page through results.
 	//
 	// Using a Results ID (RID), which can be returned by any search in Mode 1, you can specify a results set to page through.
@@ -31,23 +29,23 @@ type SubmissionSearchRequest struct {
 	// Attempting to access a results set that has been removed will throw an error. See the [Error Codes] section in this document.
 	//
 	// [Error Codes]: https://wiki.inkbunny.net/wiki/API#Error_Codes
-	RID               string          `json:"rid,omitempty" query:"rid"`
-	SubmissionIDsOnly types.BooleanYN `json:"submission_ids_only,omitempty" query:"submission_ids_only"`
+	RID               string    `json:"rid,omitempty" query:"rid"`
+	SubmissionIDsOnly BooleanYN `json:"submission_ids_only,omitempty" query:"submission_ids_only"`
 	// Number of submissions to return per page of results.
 	// Integer from 0 to 100. Default: 30.
-	SubmissionsPerPage types.IntString `json:"submissions_per_page,omitempty" query:"submissions_per_page"`
+	SubmissionsPerPage IntString `json:"submissions_per_page,omitempty" query:"submissions_per_page"`
 	// Results page number to return. Default: 1.
-	Page types.IntString `json:"page,omitempty" query:"page"`
+	Page IntString `json:"page,omitempty" query:"page"`
 	// Not to be confused with Text. This is a boolean value to return list of Top 100 Keywords.
 	// Return list of Top 100 Keywords associated with all submissions on current results page.
 	// Note that this list includes both officially assigned keywords and also keywords
 	// suggested for this submission by other users.
-	KeywordsList types.BooleanYN `json:"keywords_list,omitempty" query:"keywords_list"`
+	KeywordsList BooleanYN `json:"keywords_list,omitempty" query:"keywords_list"`
 	// Skip returning submission info.
 	// Useful when you are just returning Top Keywords or Submission Counts for searches, and you don't want all the other submission data.
-	NoSubmissions types.BooleanYN `json:"no_submissions,omitempty" query:"no_submissions"`
+	NoSubmissions BooleanYN `json:"no_submissions,omitempty" query:"no_submissions"`
 	// Return a Results ID for this search, which can then be used in Mode 2 (By setting the RID) to page through the results without running the search again for each page.
-	GetRID types.BooleanYN `json:"get_rid,omitempty" query:"get_rid"`
+	GetRID BooleanYN `json:"get_rid,omitempty" query:"get_rid"`
 
 	// Search Condition Parameters (Only used in Mode 1)
 	// Note: If you send a Results ID (the parameter "rid", above) then the search runs in Mode 2 and these Search Condition parameters are ignored.
@@ -55,7 +53,7 @@ type SubmissionSearchRequest struct {
 	// FieldJoinType Defines the union between keywords, description, writing and title search fields. Possible values are "or", "and".
 	//   - "or" will return submissions found that have the search text in any one of the chosen fields (The default and recommended settings).
 	//   - "and" will ONLY return submissions that have the search text found in ALL of the chosen fields (unusual and not recommended).
-	FieldJoinType types.FieldJoinType `json:"field_join_type,omitempty" query:"field_join_type"`
+	FieldJoinType FieldJoinType `json:"field_join_type,omitempty" query:"field_join_type"`
 	// Text to search chosen fields for. eg "dragon", "wolf", etc.
 	// A Full Text search is performed using this string (see the meaning of Full Text searches in the Postgresql Documentation).
 	// The characters "_" and "," are converted to spaces automatically.
@@ -69,17 +67,17 @@ type SubmissionSearchRequest struct {
 	Text string `json:"text,omitempty" query:"text"`
 	// Join type for the words in a string of text being searched for. "and" finds all the words together in the chosen field (default), "or" finds any one of the words, "exact" find the exact phrase.
 	// Note: This property has no effect on searching for MD5 strings (property "MD5" set to "yes"), which always assumes "or" when multiple MD5 Hashes are given.
-	StringJoinType types.JoinType `json:"string_join_type,omitempty" query:"string_join_type"`
+	StringJoinType JoinType `json:"string_join_type,omitempty" query:"string_join_type"`
 	// Search Keywords for the chosen text.
 	// Note: This is ON (Yes) by default, and is the standard field that text searches look in, unless specified otherwise.
 	// Note: At least one of keywords, title or description must be set to Yes for text search to work.
-	Keywords *types.BooleanYN `json:"keywords,omitempty" query:"keywords"`
+	Keywords *BooleanYN `json:"keywords,omitempty" query:"keywords"`
 	// Search Title for the chosen text.
 	// Note: At least one of keywords, title or description must be set to Yes for text search to work.
-	Title *types.BooleanYN `json:"title,omitempty" query:"title"`
+	Title *BooleanYN `json:"title,omitempty" query:"title"`
 	// Search the Description AND Story fields for the chosen text.
 	// Note: At least one of keywords, title or description must be set to Yes for text search to work.
-	Description *types.BooleanYN `json:"description,omitempty" query:"description"`
+	Description *BooleanYN `json:"description,omitempty" query:"description"`
 	// Search for the chosen text in the MD5 Checksum/hash of the Initial.
 	// (as uploaded and before any conversion), Full (may have metadata removed and
 	// optimised for lossless compression), Large (also known as Screen), Small, or
@@ -92,15 +90,15 @@ type SubmissionSearchRequest struct {
 	//	* See [MD5 Checksums] for more information on how MD5 is used in Inkbunny.
 	//
 	// [MD5 Checksums]: https://wiki.inkbunny.net/wiki/MD5
-	MD5 *types.BooleanYN `json:"md5,omitempty" query:"md5"`
+	MD5 *BooleanYN `json:"md5,omitempty" query:"md5"`
 	// Keyword ID to search for. Overrides text search and all its options.
-	KeywordID types.IntString `json:"keyword_id,omitempty" query:"keyword_id"`
+	KeywordID IntString `json:"keyword_id,omitempty" query:"keyword_id"`
 	// Limit results to those uploaded/owned by user with this Username only. Must be exact, but is case-insensitive. May includes non-published submissions if run by a moderator.
 	Username string `json:"username,omitempty" query:"username"`
 	// Limit results to those uploaded/owned by user with this User ID. May include non-published submissions if run by the relevant user, or a moderator.
-	UserID types.IntString `json:"user_id,omitempty" query:"user_id"`
+	UserID IntString `json:"user_id,omitempty" query:"user_id"`
 	// Limit results to favorites of the user with this User ID only.
-	FavsUserID types.IntString `json:"favs_user_id,omitempty" query:"favs_user_id"`
+	FavsUserID IntString `json:"favs_user_id,omitempty" query:"favs_user_id"`
 	// Boolean. Limit results to those which are New Unread Submissions for the
 	// currently logged in user.
 	//
@@ -110,7 +108,7 @@ type SubmissionSearchRequest struct {
 	// if they pass the blocking checks. So blocked items would only be returned
 	// here if they had their keywords or ratings changed after they were added to
 	// this user's list.
-	UnreadSubmissions types.BooleanYN `json:"unread_submissions,omitempty" query:"unread_submissions"`
+	UnreadSubmissions BooleanYN `json:"unread_submissions,omitempty" query:"unread_submissions"`
 	// Limit results to submissions with this type id. Multiple type ids are allowed.
 	// Available IDs are
 	//  1. Picture/Pinup
@@ -133,8 +131,8 @@ type SubmissionSearchRequest struct {
 	// Filter by sales status. Possible options are "forsale" (for sale by any
 	// method), "digital" (digital sales), "prints" (print sales).
 	// Deprecated: Sales are no longer part of Inkbunny.
-	Sales  types.SalesFilter `json:"sales,omitempty" query:"sales"`
-	PoolID types.IntString   `json:"pool_id,omitempty" query:"pool_id"`
+	Sales  SalesFilter `json:"sales,omitempty" query:"sales"`
+	PoolID IntString   `json:"pool_id,omitempty" query:"pool_id"`
 	// Order search results by selected criteria.
 	// Possible values are:
 	//  - create_datetime - date submission was uploaded.
@@ -149,8 +147,8 @@ type SubmissionSearchRequest struct {
 	//  - fav_datetime - date image was set as a favorite by target user. Only for use when "favs_user_id" is set.
 	//  - fav_stars - number of stars assigned to favorite by target user. Only for use when "favs_user_id" is set.
 	//  - pool_order - submission order specified for the target pool. Only for use when "pool_id" is set.
-	OrderBy   types.OrderBy   `json:"orderby,omitempty" query:"orderby"`
-	DaysLimit types.IntString `json:"dayslimit,omitempty" query:"dayslimit"`
+	OrderBy   OrderBy   `json:"orderby,omitempty" query:"orderby"`
+	DaysLimit IntString `json:"dayslimit,omitempty" query:"dayslimit"`
 	// Sort results randomly. This is done after all other filters and sort orders
 	// are applied. This can be used in conjunction with "orderby". You can order
 	// results with OrderBy, limit the number returned with other filters like
@@ -158,7 +156,7 @@ type SubmissionSearchRequest struct {
 	// Eg: Set OrderBy: OrderByViews and CountLimit: 100 to get the top 100 submissions,
 	// then with "random=yes" those top 100 are sorted randomly AFTER the other
 	// limits and conditions are used. Does your head hurt? Mine does.
-	Random types.BooleanYN `json:"random,omitempty" query:"random"`
+	Random BooleanYN `json:"random,omitempty" query:"random"`
 	// Scraps Set how submissions marked as "Scraps" are returned.
 	// Possible values are:
 	// 	both – show submissions from Scraps and Main galleries.
@@ -166,7 +164,7 @@ type SubmissionSearchRequest struct {
 	// 	only – Show only submissions from Scraps galleries, not Main galleries.
 	Scraps Scraps `json:"scraps,omitempty" query:"scraps"`
 	// Limit number of returned results. Minimum is 1. Maximum is 50000.
-	CountLimit types.IntString `json:"count_limit,omitempty" query:"count_limit"`
+	CountLimit IntString `json:"count_limit,omitempty" query:"count_limit"`
 }
 
 type Scraps = string
@@ -180,10 +178,10 @@ const (
 type SubmissionSearchResponse struct {
 	SID                  string             `json:"sid"`
 	UserLocation         string             `json:"user_location"`
-	ResultsCountAll      types.IntString    `json:"results_count_all"`
-	ResultsCountThisPage types.IntString    `json:"results_count_thispage"`
-	PagesCount           types.IntString    `json:"pages_count"`
-	Page                 types.IntString    `json:"page"`
+	ResultsCountAll      IntString          `json:"results_count_all"`
+	ResultsCountThisPage IntString          `json:"results_count_thispage"`
+	PagesCount           IntString          `json:"pages_count"`
+	Page                 IntString          `json:"page"`
 	RID                  string             `json:"rid,omitempty"`
 	RIDTTL               string             `json:"rid_ttl,omitempty"`
 	RIDTTLDuration       time.Duration      `json:"-"`
@@ -195,17 +193,17 @@ type SubmissionSearchResponse struct {
 }
 
 type KeywordList struct {
-	KeywordID        types.IntString `json:"keyword_id"`
-	KeywordName      string          `json:"keyword_name"`
-	SubmissionsCount types.IntString `json:"submissions_count"`
+	KeywordID        IntString `json:"keyword_id"`
+	KeywordName      string    `json:"keyword_name"`
+	SubmissionsCount IntString `json:"submissions_count"`
 }
 
 type SubmissionSearch struct {
 	SubmissionBasic
-	UnreadDateSystem string          `json:"unread_datetime_system,omitempty"`
-	UnreadDateUser   string          `json:"unread_datetime,omitempty"`
-	Updated          types.BooleanYN `json:"updated,omitempty"`
-	Stars            types.IntString `json:"stars,omitempty"`
+	UnreadDateSystem string    `json:"unread_datetime_system,omitempty"`
+	UnreadDateUser   string    `json:"unread_datetime,omitempty"`
+	Updated          BooleanYN `json:"updated,omitempty"`
+	Stars            IntString `json:"stars,omitempty"`
 }
 
 // SearchParam is the search parameters that were used to find these search results.

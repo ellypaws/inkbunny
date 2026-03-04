@@ -1,4 +1,4 @@
-package utils
+package inkbunny
 
 import (
 	"bytes"
@@ -6,8 +6,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-
-	"github.com/ellypaws/inkbunny/types"
 )
 
 // ParseResponse parses the HTTP response and returns the decoded value of type T.
@@ -26,7 +24,7 @@ func ParseResponse[T any](response *http.Response) (T, error) {
 		return t, err
 	}
 
-	errResponse, err := DecodeBytes[types.ErrorResponse](bin)
+	errResponse, err := DecodeBytes[ErrorResponse](bin)
 	if err != nil {
 		return t, err
 	}

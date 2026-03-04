@@ -3,54 +3,52 @@ package inkbunny
 import (
 	"net/url"
 	"strings"
-
-	"github.com/ellypaws/inkbunny/types"
 )
 
 // SubmissionDetailsRequest is modified to use BooleanYN for fields requiring "yes" or "no" representation.
 type SubmissionDetailsRequest struct {
-	SID                         string           `json:"sid" query:"sid"`
-	SubmissionIDs               string           `json:"submission_ids" query:"submission_ids"` // SubmissionIDs is a comma-separated list of submission IDs
-	SubmissionIDSlice           []string         `json:"-"`                                     // SubmissionIDSlice will be joined as a comma-separated into SubmissionIDs
-	OutputMode                  types.OutputMode `json:"output_mode,omitempty" query:"output_mode"`
-	SortKeywordsBy              string           `json:"sort_keywords_by,omitempty" query:"sort_keywords_by"`
-	ShowDescription             types.BooleanYN  `json:"show_description,omitempty" query:"show_description"`
-	ShowDescriptionBbcodeParsed types.BooleanYN  `json:"show_description_bbcode_parsed,omitempty" query:"show_description_bbcode_parsed"`
-	ShowWriting                 types.BooleanYN  `json:"show_writing,omitempty" query:"show_writing"`
-	ShowWritingBbcodeParsed     types.BooleanYN  `json:"show_writing_bbcode_parsed,omitempty" query:"show_writing_bbcode_parsed"`
-	ShowPools                   types.BooleanYN  `json:"show_pools,omitempty" query:"show_pools"`
+	SID                         string     `json:"sid" query:"sid"`
+	SubmissionIDs               string     `json:"submission_ids" query:"submission_ids"` // SubmissionIDs is a comma-separated list of submission IDs
+	SubmissionIDSlice           []string   `json:"-"`                                     // SubmissionIDSlice will be joined as a comma-separated into SubmissionIDs
+	OutputMode                  OutputMode `json:"output_mode,omitempty" query:"output_mode"`
+	SortKeywordsBy              string     `json:"sort_keywords_by,omitempty" query:"sort_keywords_by"`
+	ShowDescription             BooleanYN  `json:"show_description,omitempty" query:"show_description"`
+	ShowDescriptionBbcodeParsed BooleanYN  `json:"show_description_bbcode_parsed,omitempty" query:"show_description_bbcode_parsed"`
+	ShowWriting                 BooleanYN  `json:"show_writing,omitempty" query:"show_writing"`
+	ShowWritingBbcodeParsed     BooleanYN  `json:"show_writing_bbcode_parsed,omitempty" query:"show_writing_bbcode_parsed"`
+	ShowPools                   BooleanYN  `json:"show_pools,omitempty" query:"show_pools"`
 }
 
 // SubmissionBasic combines elements common in SubmissionSearch and SubmissionDetails
 type SubmissionBasic struct {
-	SubmissionID     types.IntString `json:"submission_id"`
-	Hidden           types.BooleanYN `json:"hidden,omitempty"`
-	Username         string          `json:"username,omitempty"`
-	UserID           types.IntString `json:"user_id,omitempty"`
-	CreateDateSystem string          `json:"create_datetime,omitempty"`
-	CreateDateUser   string          `json:"create_datetime_usertime,omitempty"`
-	UpdateDateSystem string          `json:"last_file_update_datetime,omitempty"`
-	UpdateDateUser   string          `json:"last_file_update_datetime_usertime,omitempty"`
-	FileName         string          `json:"file_name,omitempty"`
-	LatestFileName   string          `json:"latest_file_name,omitempty"`
-	Title            string          `json:"title,omitempty"`
-	Deleted          types.BooleanYN `json:"deleted,omitempty"`
-	Public           types.BooleanYN `json:"public,omitempty"`
-	MimeType         string          `json:"mimetype,omitempty"`
-	LatestMimeType   string          `json:"latest_mimetype,omitempty"`
-	PageCount        types.IntString `json:"pagecount,omitempty"`
-	RatingID         types.IntString `json:"rating_id,omitempty"`
-	RatingName       string          `json:"rating_name,omitempty"`
-	FileURL                          // FileURL is the Full URL of the (SIZE) asset for the PRIMARY file of this submission. SIZE can be one of "full, screen, preview".
+	SubmissionID     IntString `json:"submission_id"`
+	Hidden           BooleanYN `json:"hidden,omitempty"`
+	Username         string    `json:"username,omitempty"`
+	UserID           IntString `json:"user_id,omitempty"`
+	CreateDateSystem string    `json:"create_datetime,omitempty"`
+	CreateDateUser   string    `json:"create_datetime_usertime,omitempty"`
+	UpdateDateSystem string    `json:"last_file_update_datetime,omitempty"`
+	UpdateDateUser   string    `json:"last_file_update_datetime_usertime,omitempty"`
+	FileName         string    `json:"file_name,omitempty"`
+	LatestFileName   string    `json:"latest_file_name,omitempty"`
+	Title            string    `json:"title,omitempty"`
+	Deleted          BooleanYN `json:"deleted,omitempty"`
+	Public           BooleanYN `json:"public,omitempty"`
+	MimeType         string    `json:"mimetype,omitempty"`
+	LatestMimeType   string    `json:"latest_mimetype,omitempty"`
+	PageCount        IntString `json:"pagecount,omitempty"`
+	RatingID         IntString `json:"rating_id,omitempty"`
+	RatingName       string    `json:"rating_name,omitempty"`
+	FileURL                    // FileURL is the Full URL of the (SIZE) asset for the PRIMARY file of this submission. SIZE can be one of "full, screen, preview".
 	Thumbs
 	LatestThumbs
-	SubmissionTypeID types.IntString `json:"submission_type_id,omitempty"`
-	TypeName         string          `json:"type_name,omitempty"`
-	Digitalsales     types.BooleanYN `json:"digitalsales,omitempty"`
-	Printsales       types.BooleanYN `json:"printsales,omitempty"`
-	FriendsOnly      types.BooleanYN `json:"friends_only,omitempty"`
-	GuestBlock       types.BooleanYN `json:"guest_block,omitempty"`
-	Scraps           types.BooleanYN `json:"scraps,omitempty"`
+	SubmissionTypeID IntString `json:"submission_type_id,omitempty"`
+	TypeName         string    `json:"type_name,omitempty"`
+	Digitalsales     BooleanYN `json:"digitalsales,omitempty"`
+	Printsales       BooleanYN `json:"printsales,omitempty"`
+	FriendsOnly      BooleanYN `json:"friends_only,omitempty"`
+	GuestBlock       BooleanYN `json:"guest_block,omitempty"`
+	Scraps           BooleanYN `json:"scraps,omitempty"`
 }
 
 type UserIconURLs struct {
@@ -61,10 +59,10 @@ type UserIconURLs struct {
 
 type SubmissionDetails struct {
 	SubmissionBasic
-	Keywords         []Keyword       `json:"keywords"`
-	Favorite         types.BooleanYN `json:"favorite"`
-	FavoritesCount   types.IntString `json:"favorites_count"`
-	UserIconFileName string          `json:"user_icon_file_name"`
+	Keywords         []Keyword `json:"keywords"`
+	Favorite         BooleanYN `json:"favorite"`
+	FavoritesCount   IntString `json:"favorites_count"`
+	UserIconFileName string    `json:"user_icon_file_name"`
 	UserIconURLs
 	LatestFileURL
 	Files                   []File             `json:"files"`
@@ -75,44 +73,44 @@ type SubmissionDetails struct {
 	WritingBBCodeParsed     string             `json:"writing_bbcode_parsed"`
 	PoolsCount              int                `json:"pools_count"`
 	Ratings                 []SubmissionRating `json:"ratings"`
-	CommentsCount           types.IntString    `json:"comments_count"`
-	Views                   types.IntString    `json:"views"`
+	CommentsCount           IntString          `json:"comments_count"`
+	Views                   IntString          `json:"views"`
 	SalesDescription        string             `json:"sales_description"`
-	ForSale                 types.BooleanYN    `json:"forsale"`
+	ForSale                 BooleanYN          `json:"forsale"`
 	DigitalPrice            string             `json:"digital_price"`
 	Prints                  []Print            `json:"prints"`
 }
 
 type Keyword struct {
-	KeywordID   types.IntString `json:"keyword_id"`
-	KeywordName string          `json:"keyword_name"`
-	Suggested   types.BooleanYN `json:"contributed"`
-	Count       types.IntString `json:"submissions_count"`
+	KeywordID   IntString `json:"keyword_id"`
+	KeywordName string    `json:"keyword_name"`
+	Suggested   BooleanYN `json:"contributed"`
+	Count       IntString `json:"submissions_count"`
 }
 
 type File struct {
-	FileID   types.IntString `json:"file_id"`
-	FileName string          `json:"file_name"`
+	FileID   IntString `json:"file_id"`
+	FileName string    `json:"file_name"`
 	Thumbs
-	FileURL                             // Full URL of the (SIZE) asset for this file. SIZE can be one of "full, screen, preview".
-	MimeType            string          `json:"mimetype"`
-	SubmissionID        types.IntString `json:"submission_id"`
-	UserID              types.IntString `json:"user_id"`
-	SubmissionFileOrder types.IntString `json:"submission_file_order"` // An integer showing the order in which the files attached to this submission should be displayed. Starts counting at 0 for the first file/page in the submission.
+	FileURL                       // Full URL of the (SIZE) asset for this file. SIZE can be one of "full, screen, preview".
+	MimeType            string    `json:"mimetype"`
+	SubmissionID        IntString `json:"submission_id"`
+	UserID              IntString `json:"user_id"`
+	SubmissionFileOrder IntString `json:"submission_file_order"` // An integer showing the order in which the files attached to this submission should be displayed. Starts counting at 0 for the first file/page in the submission.
 	FileDimensions
 	FileMD5
-	Deleted            types.BooleanYN `json:"deleted"`
-	CreateDateTime     string          `json:"create_datetime"`
-	CreateDateTimeUser string          `json:"create_datetime_usertime"`
+	Deleted            BooleanYN `json:"deleted"`
+	CreateDateTime     string    `json:"create_datetime"`
+	CreateDateTimeUser string    `json:"create_datetime_usertime"`
 }
 
 type FileDimensions struct {
-	FullSizeX    types.IntString `json:"full_size_x"`
-	FullSizeY    types.IntString `json:"full_size_y"`
-	ScreenSizeX  types.IntString `json:"screen_size_x"`
-	ScreenSizeY  types.IntString `json:"screen_size_y"`
-	PreviewSizeX types.IntString `json:"preview_size_x"`
-	PreviewSizeY types.IntString `json:"preview_size_y"`
+	FullSizeX    IntString `json:"full_size_x"`
+	FullSizeY    IntString `json:"full_size_y"`
+	ScreenSizeX  IntString `json:"screen_size_x"`
+	ScreenSizeY  IntString `json:"screen_size_y"`
+	PreviewSizeX IntString `json:"preview_size_x"`
+	PreviewSizeY IntString `json:"preview_size_y"`
 }
 
 type FileMD5 struct {
@@ -130,40 +128,40 @@ type FileURL struct {
 }
 
 type Pool struct {
-	PoolID                     types.IntString `json:"pool_id"`
-	Name                       string          `json:"name"`
-	Description                string          `json:"description"`
-	Count                      types.IntString `json:"count"`
-	LeftSubmissionID           types.IntString `json:"submission_left_submission_id"`
-	RightSubmissionID          types.IntString `json:"submission_right_submission_id"`
-	LeftSubmissionFileName     string          `json:"submission_left_file_name"`
-	RightSubmissionFileName    string          `json:"submission_right_file_name"`
-	LeftThumbnailURL           string          `json:"submission_left_thumbnail_url,omitempty"`
-	RightThumbnailURL          string          `json:"submission_right_thumbnail_url,omitempty"`
-	LeftThumbnailURLNonCustom  string          `json:"submission_left_thumbnail_url_noncustom,omitempty"`
-	RightThumbnailURLNonCustom string          `json:"submission_right_thumbnail_url_noncustom,omitempty"`
-	LeftThumbX                 types.IntString `json:"submission_left_thumb_huge_x,omitempty"`
-	LeftThumbY                 types.IntString `json:"submission_left_thumb_huge_y,omitempty"`
-	RightThumbX                types.IntString `json:"submission_right_thumb_huge_x,omitempty"`
-	RightThumbY                types.IntString `json:"submission_right_thumb_huge_y,omitempty"`
-	LeftThumbNonCustomX        types.IntString `json:"submission_left_thumb_huge_noncustom_x,omitempty"`
-	LeftThumbNonCustomY        types.IntString `json:"submission_left_thumb_huge_noncustom_y,omitempty"`
-	RightThumbNonCustomX       types.IntString `json:"submission_right_thumb_huge_noncustom_x,omitempty"`
-	RightThumbNonCustomY       types.IntString `json:"submission_right_thumb_huge_noncustom_y,omitempty"`
+	PoolID                     IntString `json:"pool_id"`
+	Name                       string    `json:"name"`
+	Description                string    `json:"description"`
+	Count                      IntString `json:"count"`
+	LeftSubmissionID           IntString `json:"submission_left_submission_id"`
+	RightSubmissionID          IntString `json:"submission_right_submission_id"`
+	LeftSubmissionFileName     string    `json:"submission_left_file_name"`
+	RightSubmissionFileName    string    `json:"submission_right_file_name"`
+	LeftThumbnailURL           string    `json:"submission_left_thumbnail_url,omitempty"`
+	RightThumbnailURL          string    `json:"submission_right_thumbnail_url,omitempty"`
+	LeftThumbnailURLNonCustom  string    `json:"submission_left_thumbnail_url_noncustom,omitempty"`
+	RightThumbnailURLNonCustom string    `json:"submission_right_thumbnail_url_noncustom,omitempty"`
+	LeftThumbX                 IntString `json:"submission_left_thumb_huge_x,omitempty"`
+	LeftThumbY                 IntString `json:"submission_left_thumb_huge_y,omitempty"`
+	RightThumbX                IntString `json:"submission_right_thumb_huge_x,omitempty"`
+	RightThumbY                IntString `json:"submission_right_thumb_huge_y,omitempty"`
+	LeftThumbNonCustomX        IntString `json:"submission_left_thumb_huge_noncustom_x,omitempty"`
+	LeftThumbNonCustomY        IntString `json:"submission_left_thumb_huge_noncustom_y,omitempty"`
+	RightThumbNonCustomX       IntString `json:"submission_right_thumb_huge_noncustom_x,omitempty"`
+	RightThumbNonCustomY       IntString `json:"submission_right_thumb_huge_noncustom_y,omitempty"`
 }
 
 type Print struct {
-	PrintSizeID        types.IntString   `json:"print_size_id"`
-	Name               string            `json:"name"`
-	Price              types.PriceString `json:"price"`
-	PriceOwnerDiscount types.PriceString `json:"price_owner_discount,omitempty"`
+	PrintSizeID        IntString   `json:"print_size_id"`
+	Name               string      `json:"name"`
+	Price              PriceString `json:"price"`
+	PriceOwnerDiscount PriceString `json:"price_owner_discount,omitempty"`
 }
 
 type SubmissionRating struct {
-	ContentTagID types.IntString `json:"content_tag_id"`
-	Name         string          `json:"name"`
-	Description  string          `json:"description"`
-	RatingID     types.IntString `json:"rating_id"`
+	ContentTagID IntString `json:"content_tag_id"`
+	Name         string    `json:"name"`
+	Description  string    `json:"description"`
+	RatingID     IntString `json:"rating_id"`
 }
 
 // LatestFileURL Full URL of the (SIZE) asset for the LATEST added file of this submission. SIZE can be one of "full, screen, preview".
@@ -181,18 +179,18 @@ type LatestThumbs struct {
 	LatestThumbnailURLLargeNonCustom  string `json:"latest_thumbnail_url_large_noncustom,omitempty"`
 	LatestThumbnailURLHugeNonCustom   string `json:"latest_thumbnail_url_huge_noncustom,omitempty"`
 
-	LatestThumbMediumX          types.IntString `json:"latest_thumb_medium_x,omitempty"`
-	LatestThumbMediumY          types.IntString `json:"latest_thumb_medium_y,omitempty"`
-	LatestThumbLargeX           types.IntString `json:"latest_thumb_large_x,omitempty"`
-	LatestThumbLargeY           types.IntString `json:"latest_thumb_large_y,omitempty"`
-	LatestThumbHugeX            types.IntString `json:"latest_thumb_huge_x,omitempty"`
-	LatestThumbHugeY            types.IntString `json:"latest_thumb_huge_y,omitempty"`
-	LatestThumbMediumNonCustomX types.IntString `json:"latest_thumb_medium_noncustom_x,omitempty"`
-	LatestThumbMediumNonCustomY types.IntString `json:"latest_thumb_medium_noncustom_y,omitempty"`
-	LatestThumbLargeNonCustomX  types.IntString `json:"latest_thumb_large_noncustom_x,omitempty"`
-	LatestThumbLargeNonCustomY  types.IntString `json:"latest_thumb_large_noncustom_y,omitempty"`
-	LatestThumbHugeNonCustomX   types.IntString `json:"latest_thumb_huge_noncustom_x,omitempty"`
-	LatestThumbHugeNonCustomY   types.IntString `json:"latest_thumb_huge_noncustom_y,omitempty"`
+	LatestThumbMediumX          IntString `json:"latest_thumb_medium_x,omitempty"`
+	LatestThumbMediumY          IntString `json:"latest_thumb_medium_y,omitempty"`
+	LatestThumbLargeX           IntString `json:"latest_thumb_large_x,omitempty"`
+	LatestThumbLargeY           IntString `json:"latest_thumb_large_y,omitempty"`
+	LatestThumbHugeX            IntString `json:"latest_thumb_huge_x,omitempty"`
+	LatestThumbHugeY            IntString `json:"latest_thumb_huge_y,omitempty"`
+	LatestThumbMediumNonCustomX IntString `json:"latest_thumb_medium_noncustom_x,omitempty"`
+	LatestThumbMediumNonCustomY IntString `json:"latest_thumb_medium_noncustom_y,omitempty"`
+	LatestThumbLargeNonCustomX  IntString `json:"latest_thumb_large_noncustom_x,omitempty"`
+	LatestThumbLargeNonCustomY  IntString `json:"latest_thumb_large_noncustom_y,omitempty"`
+	LatestThumbHugeNonCustomX   IntString `json:"latest_thumb_huge_noncustom_x,omitempty"`
+	LatestThumbHugeNonCustomY   IntString `json:"latest_thumb_huge_noncustom_y,omitempty"`
 }
 
 type Thumbs struct {
@@ -203,29 +201,29 @@ type Thumbs struct {
 	ThumbnailURLLargeNonCustom  string `json:"thumbnail_url_large_noncustom,omitempty"`
 	ThumbnailURLHugeNonCustom   string `json:"thumbnail_url_huge_noncustom,omitempty"`
 
-	ThumbMediumX          types.IntString `json:"thumb_medium_x,omitempty"`
-	ThumbMediumY          types.IntString `json:"thumb_medium_y,omitempty"`
-	ThumbLargeX           types.IntString `json:"thumb_large_x,omitempty"`
-	ThumbLargeY           types.IntString `json:"thumb_large_y,omitempty"`
-	ThumbHugeX            types.IntString `json:"thumb_huge_x,omitempty"`
-	ThumbHugeY            types.IntString `json:"thumb_huge_y,omitempty"`
-	ThumbMediumNonCustomX types.IntString `json:"thumb_medium_noncustom_x,omitempty"`
-	ThumbMediumNonCustomY types.IntString `json:"thumb_medium_noncustom_y,omitempty"`
-	ThumbLargeNonCustomX  types.IntString `json:"thumb_large_noncustom_x,omitempty"`
-	ThumbLargeNonCustomY  types.IntString `json:"thumb_large_noncustom_y,omitempty"`
-	ThumbHugeNonCustomX   types.IntString `json:"thumb_huge_noncustom_x,omitempty"`
-	ThumbHugeNonCustomY   types.IntString `json:"thumb_huge_noncustom_y,omitempty"`
+	ThumbMediumX          IntString `json:"thumb_medium_x,omitempty"`
+	ThumbMediumY          IntString `json:"thumb_medium_y,omitempty"`
+	ThumbLargeX           IntString `json:"thumb_large_x,omitempty"`
+	ThumbLargeY           IntString `json:"thumb_large_y,omitempty"`
+	ThumbHugeX            IntString `json:"thumb_huge_x,omitempty"`
+	ThumbHugeY            IntString `json:"thumb_huge_y,omitempty"`
+	ThumbMediumNonCustomX IntString `json:"thumb_medium_noncustom_x,omitempty"`
+	ThumbMediumNonCustomY IntString `json:"thumb_medium_noncustom_y,omitempty"`
+	ThumbLargeNonCustomX  IntString `json:"thumb_large_noncustom_x,omitempty"`
+	ThumbLargeNonCustomY  IntString `json:"thumb_large_noncustom_y,omitempty"`
+	ThumbHugeNonCustomX   IntString `json:"thumb_huge_noncustom_x,omitempty"`
+	ThumbHugeNonCustomY   IntString `json:"thumb_huge_noncustom_y,omitempty"`
 }
 type SubmissionDetailsResponse struct {
 	SID          string              `json:"sid"`
-	ResultsCount types.IntString     `json:"results_count"`
+	ResultsCount IntString           `json:"results_count"`
 	UserLocation string              `json:"user_location"`
 	Submissions  []SubmissionDetails `json:"submissions"`
 }
 
 type SubmissionFavoritesResponse struct {
-	Sid   string             `json:"sid"`
-	Users []types.UsernameID `json:"favingusers"`
+	Sid   string       `json:"sid"`
+	Users []UsernameID `json:"favingusers"`
 }
 
 func (u *User) SubmissionDetails(req SubmissionDetailsRequest) (SubmissionDetailsResponse, error) {
@@ -257,7 +255,7 @@ func GetSubmissionDetails(req SubmissionDetailsRequest) (SubmissionDetailsRespon
 }
 
 // SubmissionFavorites retrieves the list of users who have favorited a specific submission.
-func (u *User) SubmissionFavorites(id types.IntString) (SubmissionFavoritesResponse, error) {
+func (u *User) SubmissionFavorites(id IntString) (SubmissionFavoritesResponse, error) {
 	if u.SID == "" {
 		return SubmissionFavoritesResponse{}, ErrNotLoggedIn
 	}

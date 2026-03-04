@@ -11,9 +11,6 @@ import (
 	"net/http"
 	"net/url"
 	"slices"
-
-	"github.com/ellypaws/inkbunny/types"
-	"github.com/ellypaws/inkbunny/utils"
 )
 
 type FileUpload struct {
@@ -50,11 +47,11 @@ type UploadResponse struct {
 type UploadProgressResponse struct {
 	Status UploadStatus `json:"status"` // The following values relate to the upload portion of the upload process, while the files are being received from the client.
 	// The following values relate to the processing portion of the upload process, once the files have all been received from the client.
-	FilesCount                types.IntString `json:"filescount"`
-	FilesCompleteCount        types.IntString `json:"filescompletecount"`
-	CurFilename               string          `json:"curfilename"`
-	LastUserResponseEpochSecs types.IntString `json:"lastuserresponse_epoch_secs"`
-	UserCancelled             string          `json:"usercancelled"`
+	FilesCount                IntString `json:"filescount"`
+	FilesCompleteCount        IntString `json:"filescompletecount"`
+	CurFilename               string    `json:"curfilename"`
+	LastUserResponseEpochSecs IntString `json:"lastuserresponse_epoch_secs"`
+	UserCancelled             string    `json:"usercancelled"`
 }
 
 // UploadStatus values are unknown yet
@@ -216,7 +213,7 @@ func uploadMultiple(c *Client, r UploadRequest) (UploadResponse, error) {
 	go func() {
 		var lastErr error
 		defer func() { pipeWriter.CloseWithError(lastErr) }()
-		err := utils.StructToMultipartWriter(w, r)
+		err := StructToMultipartWriter(w, r)
 		if err != nil {
 			lastErr = err
 			return
@@ -247,7 +244,7 @@ func uploadMultiple(c *Client, r UploadRequest) (UploadResponse, error) {
 		return UploadResponse{}, err
 	}
 
-	uploadResp, err := utils.ParseResponse[UploadResponse](httpResp)
+	uploadResp, err := ParseResponse[UploadResponse](httpResp)
 	if err != nil {
 		return UploadResponse{}, err
 	}
@@ -265,7 +262,7 @@ func uploadZip(c *Client, r UploadRequest) (UploadResponse, error) {
 	go func() {
 		var lastErr error
 		defer func() { pipeWriter.CloseWithError(lastErr) }()
-		err := utils.StructToMultipartWriter(w, r)
+		err := StructToMultipartWriter(w, r)
 		if err != nil {
 			lastErr = err
 			return
@@ -294,7 +291,7 @@ func uploadZip(c *Client, r UploadRequest) (UploadResponse, error) {
 		return UploadResponse{}, err
 	}
 
-	uploadResp, err := utils.ParseResponse[UploadResponse](httpResp)
+	uploadResp, err := ParseResponse[UploadResponse](httpResp)
 	if err != nil {
 		return UploadResponse{}, err
 	}
@@ -313,7 +310,7 @@ func uploadSingle(c *Client, r UploadRequest, index int) (UploadResponse, error)
 	go func() {
 		var lastErr error
 		defer func() { pipeWriter.CloseWithError(lastErr) }()
-		err := utils.StructToMultipartWriter(w, r)
+		err := StructToMultipartWriter(w, r)
 		if err != nil {
 			lastErr = err
 			return
@@ -358,7 +355,7 @@ func uploadSingle(c *Client, r UploadRequest, index int) (UploadResponse, error)
 		return UploadResponse{}, err
 	}
 
-	uploadResp, err := utils.ParseResponse[UploadResponse](httpResp)
+	uploadResp, err := ParseResponse[UploadResponse](httpResp)
 	if err != nil {
 		return UploadResponse{}, err
 	}
@@ -378,5 +375,5 @@ func UploadProgress(c *Client, progressKey string, cancel bool) (UploadProgressR
 	if err != nil {
 		return UploadProgressResponse{}, err
 	}
-	return utils.ParseResponse[UploadProgressResponse](httpResp)
+	return ParseResponse[UploadProgressResponse](httpResp)
 }

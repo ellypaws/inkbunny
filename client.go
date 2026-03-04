@@ -8,8 +8,6 @@ import (
 	"net/url"
 	"strings"
 	"time"
-
-	"github.com/ellypaws/inkbunny/utils"
 )
 
 var DefaultClient = NewClient()
@@ -81,7 +79,7 @@ func PostDecode[T any](c *Client, url *url.URL, data any) (T, error) {
 		var t T
 		return t, err
 	}
-	return utils.ParseResponse[T](response)
+	return ParseResponse[T](response)
 }
 
 // PostForm sends a POST request to the specified URL with the provided data and returns the HTTP response or an error.
@@ -107,7 +105,7 @@ func (c *Client) PostForm(u *url.URL, data any) (*http.Response, error) {
 		body = strings.NewReader(u.RawQuery)
 	default:
 		var err error
-		body, contentType, err = utils.StructToMultipartForm(data)
+		body, contentType, err = StructToMultipartForm(data)
 		if err != nil {
 			return nil, err
 		}

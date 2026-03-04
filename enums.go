@@ -1,4 +1,4 @@
-package types
+package inkbunny
 
 import (
 	"encoding/json"

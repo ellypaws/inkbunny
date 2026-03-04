@@ -4,17 +4,14 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
-
-	"github.com/ellypaws/inkbunny/types"
-	"github.com/ellypaws/inkbunny/utils"
 )
 
 type User struct {
 	client   *Client
-	SID      string          `json:"sid" query:"sid"`
-	Username string          `json:"username,omitempty" query:"username"`
-	UserID   types.IntString `json:"user_id,omitempty" query:"user_id"`
-	Ratings  types.Ratings   `json:"ratingsmask,omitempty" query:"ratingsmask"`
+	SID      string    `json:"sid" query:"sid"`
+	Username string    `json:"username,omitempty" query:"username"`
+	UserID   IntString `json:"user_id,omitempty" query:"user_id"`
+	Ratings  Ratings   `json:"ratingsmask,omitempty" query:"ratingsmask"`
 }
 
 func (u *User) Client() *Client {
@@ -63,7 +60,7 @@ func (u *User) Logout() error {
 	if u.SID == "" {
 		return ErrNotLoggedIn
 	}
-	response, err := PostDecode[types.LogoutResponse](u.Client(), ApiUrl("logout"), url.Values{"sid": {u.SID}})
+	response, err := PostDecode[LogoutResponse](u.Client(), ApiUrl("logout"), url.Values{"sid": {u.SID}})
 	if err != nil {
 		return fmt.Errorf("error logging out: %w", err)
 	}
@@ -87,14 +84,14 @@ func (u *User) Logout() error {
 //     unless you explicitly keep it activated with the parameter Ratings{MildViolence: true}.
 //
 // You can also call types.ParseMaskU if you want to use a bitmask.
-func (u *User) ChangeRatings(ratings types.Ratings) error {
+func (u *User) ChangeRatings(ratings Ratings) error {
 	if u == nil {
 		return ErrNilUser
 	}
 	if u.SID == "" {
 		return ErrNotLoggedIn
 	}
-	values := utils.StructToUrlValues(ratings)
+	values := StructToUrlValues(ratings)
 	values.Set("sid", u.SID)
 	response, err := PostDecode[User](u.Client(), ApiUrl("userrating"), values)
 	if err != nil {

@@ -1,4 +1,4 @@
-package types
+package inkbunny
 
 type ErrorResponse struct {
 	Code    *int   `json:"error_code,omitempty"`

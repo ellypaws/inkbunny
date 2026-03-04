@@ -1,4 +1,4 @@
-package types
+package inkbunny
 
 type LogoutResponse struct {
 	SID    string `json:"sid"`
