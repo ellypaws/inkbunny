@@ -213,7 +213,7 @@ func uploadMultiple(c *Client, r UploadRequest) (UploadResponse, error) {
 	go func() {
 		var lastErr error
 		defer func() { pipeWriter.CloseWithError(lastErr) }()
-		err := StructToMultipartWriter(w, r)
+		err := structToMultipartWriter(w, r)
 		if err != nil {
 			lastErr = err
 			return
@@ -244,7 +244,7 @@ func uploadMultiple(c *Client, r UploadRequest) (UploadResponse, error) {
 		return UploadResponse{}, err
 	}
 
-	uploadResp, err := ParseResponse[UploadResponse](httpResp)
+	uploadResp, err := parseResponse[UploadResponse](httpResp)
 	if err != nil {
 		return UploadResponse{}, err
 	}
@@ -262,7 +262,7 @@ func uploadZip(c *Client, r UploadRequest) (UploadResponse, error) {
 	go func() {
 		var lastErr error
 		defer func() { pipeWriter.CloseWithError(lastErr) }()
-		err := StructToMultipartWriter(w, r)
+		err := structToMultipartWriter(w, r)
 		if err != nil {
 			lastErr = err
 			return
@@ -291,7 +291,7 @@ func uploadZip(c *Client, r UploadRequest) (UploadResponse, error) {
 		return UploadResponse{}, err
 	}
 
-	uploadResp, err := ParseResponse[UploadResponse](httpResp)
+	uploadResp, err := parseResponse[UploadResponse](httpResp)
 	if err != nil {
 		return UploadResponse{}, err
 	}
@@ -310,7 +310,7 @@ func uploadSingle(c *Client, r UploadRequest, index int) (UploadResponse, error)
 	go func() {
 		var lastErr error
 		defer func() { pipeWriter.CloseWithError(lastErr) }()
-		err := StructToMultipartWriter(w, r)
+		err := structToMultipartWriter(w, r)
 		if err != nil {
 			lastErr = err
 			return
@@ -355,7 +355,7 @@ func uploadSingle(c *Client, r UploadRequest, index int) (UploadResponse, error)
 		return UploadResponse{}, err
 	}
 
-	uploadResp, err := ParseResponse[UploadResponse](httpResp)
+	uploadResp, err := parseResponse[UploadResponse](httpResp)
 	if err != nil {
 		return UploadResponse{}, err
 	}
@@ -375,5 +375,5 @@ func UploadProgress(c *Client, progressKey string, cancel bool) (UploadProgressR
 	if err != nil {
 		return UploadProgressResponse{}, err
 	}
-	return ParseResponse[UploadProgressResponse](httpResp)
+	return parseResponse[UploadProgressResponse](httpResp)
 }

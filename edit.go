@@ -108,7 +108,7 @@ func (c *Client) EditSubmission(req SubmissionEditRequest) (EditSubmissionRespon
 		return EditSubmissionResponse{}, ErrEmptySubID
 	}
 
-	values := StructToUrlValues(req)
+	values := structToUrlValues(req)
 	if req.Notify != nil && !req.Notify.Bool() && req.Public != nil && req.Public.Bool() {
 		values.Set("visibility", "yes_nowatch")
 	}

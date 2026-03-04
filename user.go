@@ -91,7 +91,7 @@ func (u *User) ChangeRatings(ratings Ratings) error {
 	if u.SID == "" {
 		return ErrNotLoggedIn
 	}
-	values := StructToUrlValues(ratings)
+	values := structToUrlValues(ratings)
 	values.Set("sid", u.SID)
 	response, err := PostDecode[User](u.Client(), ApiUrl("userrating"), values)
 	if err != nil {

@@ -44,7 +44,7 @@ func (c *Client) KeywordSuggestion(keyword string, ratings Ratings, underscore b
 	type results struct {
 		Results []KeywordAutocomplete `json:"results"`
 	}
-	response, err := PostDecode[results](c, ApiUrl("search_autosuggest"), StructToUrlValues(param))
+	response, err := PostDecode[results](c, ApiUrl("search_autosuggest"), structToUrlValues(param))
 	return response.Results, err
 }
 
