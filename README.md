@@ -41,7 +41,7 @@
 
 ## Installation
 
-Install [Go 1.24.2](https://go.dev/dl/) or later and set up your Go environment.
+Install [Go 1.26.](https://go.dev/dl/) or later and set up your Go environment.
 
 ```bash
 go get github.com/ellypaws/inkbunny
@@ -51,8 +51,7 @@ go get github.com/ellypaws/inkbunny
 
 ### Login
 
-To use the Inkbunny API, you need to authenticate and obtain a Session ID (SID). This library provides a simple way to
-do this:
+To use the Inkbunny API, you need to authenticate and obtain a Session ID (SID). This library provides a simple way to do this:
 
 ```go
 // Create a client and login
@@ -72,29 +71,27 @@ if err != nil {
 ```
 
 > [!IMPORTANT]  
-> User accounts are only accessible for login via the API if "Enable API Access" is enabled in the user's [Account
-> Settings](https://inkbunny.net/account.php)
+> User accounts are only accessible for login via the API if "Enable API Access" is enabled in the user's [Account Settings](https://inkbunny.net/account.php)
 
 ### Setting Content Ratings
 
 Inkbunny uses a rating system to filter content. You can set which ratings you want to see:
 
 > [!TIP]
-> For guest users, rating changes only affect the current session. For registered users, rating changes in the API
-> only affect the current session and are not saved to their account.
+> For guest users, rating changes only affect the current session. For registered users, rating changes in the API only affect the current session and are not saved to their account.
 
 ```go
 // Change ratings to see General and Nudity content only
-err := user.ChangeRatings(types.Ratings{
-    General: &types.Yes,
-    Nudity:  &types.Yes,
+err := user.ChangeRatings(inkbunny.Ratings{
+    General: new(inkbunny.Yes),
+    Nudity:  new(inkbunny.Yes),
 })
 if err != nil {
     log.Fatalf("Failed to change ratings: %v", err)
 }
 
 // Alternatively, you can use the ParseMaskU function with constants
-ratings := types.ParseMaskU(types.General | types.Nudity)
+ratings := inkbunny.ParseMaskU(inkbunny.General | inkbunny.Nudity)
 err = user.ChangeRatings(ratings)
 if err != nil {
     log.Fatalf("Failed to change ratings: %v", err)
@@ -121,19 +118,19 @@ searchReq := inkbunny.SubmissionSearchRequest{
     SID:                "SID", // overrides the SID, otherwise uses user.SID if blank
     Text:               "fox",
     Type:               inkbunny.SubmissionTypes{inkbunny.SubmissionTypePicturePinup},
-    Page:               types.IntString(1),
-    SubmissionsPerPage: types.IntString(10),
-    OrderBy:            types.OrderByViews,
-    Random:             types.No,
-    DaysLimit:          types.IntString(30),
-    Keywords:           &types.Yes,  // Search in keywords (boolean)
-    Title:              &types.Yes,  // Also search in titles (boolean)
-    UserID:             types.IntString(12345), // Limit results to those uploaded/owned by user with this User ID.
+    Page:               inkbunny.IntString(1),
+    SubmissionsPerPage: inkbunny.IntString(10),
+    OrderBy:            inkbunny.OrderByViews,
+    Random:             inkbunny.No,
+    DaysLimit:          inkbunny.IntString(30),
+    Keywords:           new(inkbunny.Yes),  // Search in keywords (boolean)
+    Title:              new(inkbunny.Yes),  // Also search in titles (boolean)
+    UserID:             inkbunny.IntString(12345), // Limit results to those uploaded/owned by user with this User ID.
     Username:           "artist_name", // Limit results to those uploaded/owned by user with this Username only.
     RID:                "abc123",   // Results ID for paging through results (Mode 2)
-    GetRID:             types.Yes,  // Get a Results ID for this search (for Mode 2)
-    PoolID:             types.IntString(789),
-    CountLimit:         types.IntString(100), // Limit results to 100 submissions
+    GetRID:             inkbunny.Yes,  // Get a Results ID for this search (for Mode 2)
+    PoolID:             inkbunny.IntString(789),
+    CountLimit:         inkbunny.IntString(100), // Limit results to 100 submissions
     Scraps:             inkbunny.ScrapsBoth,  // Show submissions from both main and scraps galleries
 }
 
@@ -151,7 +148,7 @@ for _, submission := range results.Submissions {
     fmt.Printf("Submission ID: %s, Title: %s\n", submission.SubmissionID, submission.Title)
 }
 
-// If you set GetRID: types.Yes, you can paginate through all results
+// If you set GetRID: inkbunny.Yes, you can paginate through all results
 // without running the search again (Mode 2)
 if results.RID != "" {
     fmt.Printf("Results ID: %s (expires in %s)\n", 
@@ -189,11 +186,11 @@ detailsReq := inkbunny.SubmissionDetailsRequest{
     SubmissionIDs: "123456,789012", // Comma-separated list of submission IDs
     // Alternatively, you can use SubmissionIDSlice
     SubmissionIDSlice: []string{"123456", "789012"},
-    ShowDescription:             types.Yes,
-    ShowDescriptionBbcodeParsed: types.Yes,
-    ShowWriting:                 types.Yes,
-    ShowWritingBbcodeParsed:     types.Yes,
-    ShowPools:                   types.Yes,
+    ShowDescription:             inkbunny.Yes,
+    ShowDescriptionBbcodeParsed: inkbunny.Yes,
+    ShowWriting:                 inkbunny.Yes,
+    ShowWritingBbcodeParsed:     inkbunny.Yes,
+    ShowPools:                   inkbunny.Yes,
 }
 
 // Get the details
@@ -226,18 +223,14 @@ for _, submission := range details.Submissions {
 You can edit submissions using the `EditSubmission` method:
 
 ```go
-// Create a title and description
-title := "My Updated Submission"
-description := "This is an updated description for my submission."
-
 // Create an edit request
 editReq := inkbunny.SubmissionEditRequest{
     SID:          user.SID,
-    SubmissionID: types.IntString("123456"),
-    Title:        &title,
-    Description:  &description,
-    Public:       &types.Yes,
-    Scraps:       &types.No,
+    SubmissionID: inkbunny.IntString(123456),
+    Title:        new("My Updated Submission"),
+    Description:  new("This is an updated description for my submission."),
+    Public:       new(inkbunny.Yes),
+    Scraps:       new(inkbunny.No),
     Keywords:     []string{"updated", "edited", "new"},
 }
 
@@ -250,8 +243,7 @@ if err != nil {
 
 #### Understanding Pointer Values
 
-In the `SubmissionEditRequest` struct, many fields are pointers. This is important because it allows you to control
-whether a field should be updated, cleared, or left unchanged:
+In the `SubmissionEditRequest` struct, many fields are pointers. This is important because it allows you to control whether a field should be updated, cleared, or left unchanged:
 
 1. **Not setting a field** (nil pointer): The field's current value will be preserved
 2. **Setting a field to empty** (pointer to empty string): The field will be cleared
@@ -261,32 +253,27 @@ Example:
 
 ```go
 // Example 1: Update the title, preserve the description
-newTitle := "Updated Title"
 editReq := inkbunny.SubmissionEditRequest{
     SID:          user.SID,
-    SubmissionID: types.IntString("123456"),
-    Title:        &newTitle,     // Will update the title
-    Description:  nil,           // Will preserve the current description
+    SubmissionID: inkbunny.IntString(123456),
+    Title:        new("Updated Title"), // Will update the title
+    Description:  nil,                  // Will preserve the current description
 }
 
 // Example 2: Update the title, clear the description
-newTitle := "Updated Title"
-emptyDesc := ""
 editReq := inkbunny.SubmissionEditRequest{
     SID:          user.SID,
-    SubmissionID: types.IntString("123456"),
-    Title:        &newTitle,     // Will update the title
-    Description:  &emptyDesc,    // Will clear the description
+    SubmissionID: inkbunny.IntString(123456),
+    Title:        new("Updated Title"), // Will update the title
+    Description:  new(""),              // Will clear the description
 }
 
 // Example 3: Update both title and description
-newTitle := "Updated Title"
-newDesc := "New description"
 editReq := inkbunny.SubmissionEditRequest{
     SID:          user.SID,
-    SubmissionID: types.IntString("123456"),
-    Title:        &newTitle,     // Will update the title
-    Description:  &newDesc,      // Will update the description
+    SubmissionID: inkbunny.IntString(123456),
+    Title:        new("Updated Title"),   // Will update the title
+    Description:  new("New description"), // Will update the description
 }
 ```
 
@@ -344,17 +331,4 @@ if err != nil {
 As of May 9, 2025, the following API methods are broken or deprecated:
 
 - [x] **ZIP File Upload**: Fixed on May 9, 2025 on Inbunny's side. ~~The `ZipFile` field in `UploadRequest` is currently broken in the API.~~
-- [ ] **Upload Progress**: The `ProgressKey` field in `UploadRequest` and the `UploadProgress` function are currently broken
-  in the API.
-- [ ] **Cancel Upload**: The `Cancel` method of `UploadResponse` is deprecated as it uses the broken `UploadProgress`
-  function.
-
-> [!WARNING]  
-> Instead of using the deprecated `Cancel` method, use `UploadRequest.Context` along with `context.WithCancel` to cancel
-> uploads.
-
-### API Access Requirements
-
-> [!IMPORTANT]  
-> User accounts are only accessible for login via the API if "Enable API Access" is enabled in the user's Account
-> Settings at https://inkbunny.net/account.php
+- [ ] **Upload Progress**: The `ProgressKey` field in `UploadRequest` and the `UploadProgress` function are currently broken in the API.
