@@ -1,6 +1,7 @@
 package inkbunny
 
 import (
+	"context"
 	"io"
 )
 
@@ -41,7 +42,7 @@ type SubmissionEditRequest struct {
 	// as &nbsp; on the web page. If your uploaded text is likely to contain html
 	// entities then always set this option to types.Yes
 	ConvertHTMLEntities BooleanYN      `json:"convert_html_entities,omitempty"`
-	SubmissionType      SubmissionType `json:"submission_type,omitempty"`
+	SubmissionType      SubmissionType `json:"type,omitempty"`
 	Scraps              *BooleanYN     `json:"scraps,omitempty"`
 	// Announce this submission via the owner's Twitter account, if configured and
 	// enabled. If this property is set to "yes", then the announcement occurs the
@@ -91,16 +92,28 @@ type EditSubmissionResponse struct {
 // EditSubmission edits an existing submission on Inkbunny based on the provided request parameters.
 // This method requires a valid session ID (SID) and submission ID.
 func (u *User) EditSubmission(req SubmissionEditRequest) (EditSubmissionResponse, error) {
+	return u.EditSubmissionContext(context.Background(), req)
+}
+
+// EditSubmissionContext is like EditSubmission but accepts a context.Context
+// for per-call cancellation and timeout control.
+func (u *User) EditSubmissionContext(ctx context.Context, req SubmissionEditRequest) (EditSubmissionResponse, error) {
 	if req.SID == "" {
 		req.SID = u.SID
 	}
 
-	return u.Client().EditSubmission(req)
+	return u.Client().EditSubmissionContext(ctx, req)
 }
 
 // EditSubmission edits an existing submission on Inkbunny based on the provided request parameters.
 // This method requires a valid session ID (SID) and submission ID.
 func (c *Client) EditSubmission(req SubmissionEditRequest) (EditSubmissionResponse, error) {
+	return c.EditSubmissionContext(c.ctx, req)
+}
+
+// EditSubmissionContext is like EditSubmission but accepts a context.Context
+// for per-call cancellation and timeout control.
+func (c *Client) EditSubmissionContext(ctx context.Context, req SubmissionEditRequest) (EditSubmissionResponse, error) {
 	if req.SID == "" {
 		return EditSubmissionResponse{}, ErrEmptySID
 	}
@@ -113,7 +126,7 @@ func (c *Client) EditSubmission(req SubmissionEditRequest) (EditSubmissionRespon
 		values.Set("visibility", "yes_nowatch")
 	}
 
-	return PostDecode[EditSubmissionResponse](c, ApiUrl("editsubmission"), values)
+	return PostDecode[EditSubmissionResponse](c.withContext(ctx), ApiUrl("editsubmission"), values)
 }
 
 // EditSubmission edits an existing submission on Inkbunny based on the provided request parameters.

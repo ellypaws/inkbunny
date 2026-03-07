@@ -58,9 +58,13 @@ func structToMultipartPipe(s any) (io.ReadCloser, string, error) {
 	}
 	// write all fields
 	go func() {
+		var lastErr error
+		defer func() { pw.CloseWithError(lastErr) }()
 		if err := writeFields(writer, v); err != nil {
-			pw.CloseWithError(err)
+			lastErr = err
+			return
 		}
+		lastErr = writer.Close()
 	}()
 	return pr, writer.FormDataContentType(), nil
 }
@@ -82,6 +86,63 @@ func structToMultipartWriter(writer *multipart.Writer, s any) error {
 		return err
 	}
 	return nil
+}
+
+// marshalFieldValue converts a reflected field value to its string representation.
+// It checks interface implementations in priority order (io.Reader, fmt.Stringer,
+// encoding.BinaryMarshaler, encoding.TextMarshaler, json.Marshaler) and falls back
+// to reflect.Kind-based formatting.
+func marshalFieldValue(fv reflect.Value) (string, error) {
+	iface := fv.Interface()
+	switch i := iface.(type) {
+	case io.Reader:
+		var buf strings.Builder
+		if _, err := io.Copy(&buf, i); err != nil {
+			return "", err
+		}
+		return buf.String(), nil
+	case fmt.Stringer:
+		return i.String(), nil
+	case encoding.BinaryMarshaler:
+		b, err := i.MarshalBinary()
+		if err != nil {
+			return "", err
+		}
+		return string(b), nil
+	case encoding.TextMarshaler:
+		b, err := i.MarshalText()
+		if err != nil {
+			return "", err
+		}
+		return string(b), nil
+	case json.Marshaler:
+		b, err := i.MarshalJSON()
+		if err != nil {
+			return "", err
+		}
+		return strings.Trim(string(b), `"`), nil
+	default:
+		switch fv.Kind() {
+		case reflect.Bool:
+			return strconv.FormatBool(fv.Bool()), nil
+		case reflect.Slice:
+			parts := make([]string, fv.Len())
+			for i := range fv.Len() {
+				parts[i] = fmt.Sprint(fv.Index(i).Interface())
+			}
+			return strings.Join(parts, ","), nil
+		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+			return strconv.FormatInt(fv.Int(), 10), nil
+		case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+			return strconv.FormatUint(fv.Uint(), 10), nil
+		case reflect.Float32, reflect.Float64:
+			return strconv.FormatFloat(fv.Float(), 'g', -1, 64), nil
+		case reflect.String:
+			return fv.String(), nil
+		default:
+			return fmt.Sprint(iface), nil
+		}
+	}
 }
 
 // writeFields iterates over struct fields and writes each as a form field.
@@ -109,50 +170,9 @@ func writeFields(writer *multipart.Writer, v reflect.Value) error {
 			continue
 		}
 
-		var str string
-		iface := fv.Interface()
-		switch i := iface.(type) {
-		case io.Reader:
-			var buf strings.Builder
-			if _, err := io.Copy(&buf, i); err != nil {
-				return err
-			}
-			str = buf.String()
-		case fmt.Stringer:
-			str = i.String()
-		case encoding.BinaryMarshaler:
-			b, err := i.MarshalBinary()
-			if err != nil {
-				return err
-			}
-			str = string(b)
-		case json.Marshaler:
-			b, err := i.MarshalJSON()
-			if err != nil {
-				return err
-			}
-			str = strings.Trim(string(b), `"`)
-		default:
-			switch fv.Kind() {
-			case reflect.Bool:
-				str = strconv.FormatBool(fv.Bool())
-			case reflect.Slice:
-				parts := make([]string, fv.Len())
-				for i := range fv.Len() {
-					parts[i] = fmt.Sprint(fv.Index(i).Interface())
-				}
-				str = strings.Join(parts, ",")
-			case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-				str = strconv.FormatInt(fv.Int(), 10)
-			case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-				str = strconv.FormatUint(fv.Uint(), 10)
-			case reflect.Float32, reflect.Float64:
-				str = strconv.FormatFloat(fv.Float(), 'g', -1, 64)
-			case reflect.String:
-				str = fv.String()
-			default:
-				str = fmt.Sprint(iface)
-			}
+		str, err := marshalFieldValue(fv)
+		if err != nil {
+			return err
 		}
 		// write form field
 		if str != "" {
@@ -325,51 +345,9 @@ func structToUrlValues(s any) url.Values {
 		}
 
 		// ——— scalar / slice / interface marshalling ———
-		var str string
-		iface := fv.Interface()
-
-		switch i := iface.(type) {
-		case fmt.Stringer:
-			str = i.String()
-		case encoding.BinaryMarshaler:
-			b, err := i.MarshalBinary()
-			if err != nil {
-				continue
-			}
-			str = string(b)
-		case encoding.TextMarshaler:
-			b, err := i.MarshalText()
-			if err != nil {
-				continue
-			}
-			str = string(b)
-		case json.Marshaler:
-			b, err := i.MarshalJSON()
-			if err != nil {
-				continue
-			}
-			str = strings.Trim(string(b), `"`)
-		default:
-			switch fv.Kind() {
-			case reflect.Bool:
-				str = strconv.FormatBool(fv.Bool())
-			case reflect.Slice:
-				parts := make([]string, fv.Len())
-				for i := 0; i < fv.Len(); i++ {
-					parts[i] = fmt.Sprint(fv.Index(i).Interface())
-				}
-				str = strings.Join(parts, ",")
-			case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-				str = strconv.FormatInt(fv.Int(), 10)
-			case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-				str = strconv.FormatUint(fv.Uint(), 10)
-			case reflect.Float32, reflect.Float64:
-				str = strconv.FormatFloat(fv.Float(), 'g', -1, 64)
-			case reflect.String:
-				str = fv.String()
-			default:
-				str = fmt.Sprint(iface)
-			}
+		str, err := marshalFieldValue(fv)
+		if err != nil {
+			continue
 		}
 
 		if str != "" {

@@ -1,13 +1,14 @@
 package inkbunny
 
 import (
+	"context"
 	"net/url"
 	"strings"
 )
 
 // SubmissionDetailsRequest is modified to use BooleanYN for fields requiring "yes" or "no" representation.
 type SubmissionDetailsRequest struct {
-	SID                         string     `json:"sid" query:"sid"`
+	SID                         string     `json:"sid,omitempty" query:"sid"`
 	SubmissionIDs               string     `json:"submission_ids" query:"submission_ids"` // SubmissionIDs is a comma-separated list of submission IDs
 	SubmissionIDSlice           []string   `json:"-"`                                     // SubmissionIDSlice will be joined as a comma-separated into SubmissionIDs
 	OutputMode                  OutputMode `json:"output_mode,omitempty" query:"output_mode"`
@@ -71,7 +72,7 @@ type SubmissionDetails struct {
 	DescriptionBBCodeParsed string             `json:"description_bbcode_parsed"`
 	Writing                 string             `json:"writing"`
 	WritingBBCodeParsed     string             `json:"writing_bbcode_parsed"`
-	PoolsCount              int                `json:"pools_count"`
+	PoolsCount              IntString          `json:"pools_count"`
 	Ratings                 []SubmissionRating `json:"ratings"`
 	CommentsCount           IntString          `json:"comments_count"`
 	Views                   IntString          `json:"views"`
@@ -128,26 +129,50 @@ type FileURL struct {
 }
 
 type Pool struct {
-	PoolID                     IntString `json:"pool_id"`
-	Name                       string    `json:"name"`
-	Description                string    `json:"description"`
-	Count                      IntString `json:"count"`
-	LeftSubmissionID           IntString `json:"submission_left_submission_id"`
-	RightSubmissionID          IntString `json:"submission_right_submission_id"`
-	LeftSubmissionFileName     string    `json:"submission_left_file_name"`
-	RightSubmissionFileName    string    `json:"submission_right_file_name"`
-	LeftThumbnailURL           string    `json:"submission_left_thumbnail_url,omitempty"`
-	RightThumbnailURL          string    `json:"submission_right_thumbnail_url,omitempty"`
-	LeftThumbnailURLNonCustom  string    `json:"submission_left_thumbnail_url_noncustom,omitempty"`
-	RightThumbnailURLNonCustom string    `json:"submission_right_thumbnail_url_noncustom,omitempty"`
-	LeftThumbX                 IntString `json:"submission_left_thumb_huge_x,omitempty"`
-	LeftThumbY                 IntString `json:"submission_left_thumb_huge_y,omitempty"`
-	RightThumbX                IntString `json:"submission_right_thumb_huge_x,omitempty"`
-	RightThumbY                IntString `json:"submission_right_thumb_huge_y,omitempty"`
-	LeftThumbNonCustomX        IntString `json:"submission_left_thumb_huge_noncustom_x,omitempty"`
-	LeftThumbNonCustomY        IntString `json:"submission_left_thumb_huge_noncustom_y,omitempty"`
-	RightThumbNonCustomX       IntString `json:"submission_right_thumb_huge_noncustom_x,omitempty"`
-	RightThumbNonCustomY       IntString `json:"submission_right_thumb_huge_noncustom_y,omitempty"`
+	PoolID                           IntString `json:"pool_id"`
+	Name                             string    `json:"name"`
+	Description                      string    `json:"description"`
+	Count                            IntString `json:"count"`
+	LeftSubmissionID                 IntString `json:"submission_left_submission_id"`
+	RightSubmissionID                IntString `json:"submission_right_submission_id"`
+	LeftSubmissionFileName           string    `json:"submission_left_file_name"`
+	RightSubmissionFileName          string    `json:"submission_right_file_name"`
+	LeftThumbnailURLMedium           string    `json:"submission_left_thumbnail_url_medium,omitempty"`
+	LeftThumbnailURLLarge            string    `json:"submission_left_thumbnail_url_large,omitempty"`
+	LeftThumbnailURL                 string    `json:"submission_left_thumbnail_url_huge,omitempty"`
+	RightThumbnailURLMedium          string    `json:"submission_right_thumbnail_url_medium,omitempty"`
+	RightThumbnailURLLarge           string    `json:"submission_right_thumbnail_url_large,omitempty"`
+	RightThumbnailURL                string    `json:"submission_right_thumbnail_url_huge,omitempty"`
+	LeftThumbnailURLMediumNonCustom  string    `json:"submission_left_thumbnail_url_medium_noncustom,omitempty"`
+	LeftThumbnailURLLargeNonCustom   string    `json:"submission_left_thumbnail_url_large_noncustom,omitempty"`
+	LeftThumbnailURLNonCustom        string    `json:"submission_left_thumbnail_url_huge_noncustom,omitempty"`
+	RightThumbnailURLMediumNonCustom string    `json:"submission_right_thumbnail_url_medium_noncustom,omitempty"`
+	RightThumbnailURLLargeNonCustom  string    `json:"submission_right_thumbnail_url_large_noncustom,omitempty"`
+	RightThumbnailURLNonCustom       string    `json:"submission_right_thumbnail_url_huge_noncustom,omitempty"`
+	LeftThumbMediumX                 IntString `json:"submission_left_thumb_medium_x,omitempty"`
+	LeftThumbMediumY                 IntString `json:"submission_left_thumb_medium_y,omitempty"`
+	LeftThumbLargeX                  IntString `json:"submission_left_thumb_large_x,omitempty"`
+	LeftThumbLargeY                  IntString `json:"submission_left_thumb_large_y,omitempty"`
+	LeftThumbX                       IntString `json:"submission_left_thumb_huge_x,omitempty"`
+	LeftThumbY                       IntString `json:"submission_left_thumb_huge_y,omitempty"`
+	RightThumbMediumX                IntString `json:"submission_right_thumb_medium_x,omitempty"`
+	RightThumbMediumY                IntString `json:"submission_right_thumb_medium_y,omitempty"`
+	RightThumbLargeX                 IntString `json:"submission_right_thumb_large_x,omitempty"`
+	RightThumbLargeY                 IntString `json:"submission_right_thumb_large_y,omitempty"`
+	RightThumbX                      IntString `json:"submission_right_thumb_huge_x,omitempty"`
+	RightThumbY                      IntString `json:"submission_right_thumb_huge_y,omitempty"`
+	LeftThumbMediumNonCustomX        IntString `json:"submission_left_thumb_medium_noncustom_x,omitempty"`
+	LeftThumbMediumNonCustomY        IntString `json:"submission_left_thumb_medium_noncustom_y,omitempty"`
+	LeftThumbLargeNonCustomX         IntString `json:"submission_left_thumb_large_noncustom_x,omitempty"`
+	LeftThumbLargeNonCustomY         IntString `json:"submission_left_thumb_large_noncustom_y,omitempty"`
+	LeftThumbNonCustomX              IntString `json:"submission_left_thumb_huge_noncustom_x,omitempty"`
+	LeftThumbNonCustomY              IntString `json:"submission_left_thumb_huge_noncustom_y,omitempty"`
+	RightThumbMediumNonCustomX       IntString `json:"submission_right_thumb_medium_noncustom_x,omitempty"`
+	RightThumbMediumNonCustomY       IntString `json:"submission_right_thumb_medium_noncustom_y,omitempty"`
+	RightThumbLargeNonCustomX        IntString `json:"submission_right_thumb_large_noncustom_x,omitempty"`
+	RightThumbLargeNonCustomY        IntString `json:"submission_right_thumb_large_noncustom_y,omitempty"`
+	RightThumbNonCustomX             IntString `json:"submission_right_thumb_huge_noncustom_x,omitempty"`
+	RightThumbNonCustomY             IntString `json:"submission_right_thumb_huge_noncustom_y,omitempty"`
 }
 
 type Print struct {
@@ -227,16 +252,28 @@ type SubmissionFavoritesResponse struct {
 }
 
 func (u *User) SubmissionDetails(req SubmissionDetailsRequest) (SubmissionDetailsResponse, error) {
+	return u.SubmissionDetailsContext(context.Background(), req)
+}
+
+// SubmissionDetailsContext is like SubmissionDetails but accepts a context.Context
+// for per-call cancellation and timeout control.
+func (u *User) SubmissionDetailsContext(ctx context.Context, req SubmissionDetailsRequest) (SubmissionDetailsResponse, error) {
 	if req.SID == "" {
 		if u.SID == "" {
 			return SubmissionDetailsResponse{}, ErrNotLoggedIn
 		}
 		req.SID = u.SID
 	}
-	return u.Client().SubmissionDetails(req)
+	return u.Client().SubmissionDetailsContext(ctx, req)
 }
 
 func (c *Client) SubmissionDetails(req SubmissionDetailsRequest) (SubmissionDetailsResponse, error) {
+	return c.SubmissionDetailsContext(c.ctx, req)
+}
+
+// SubmissionDetailsContext is like SubmissionDetails but accepts a context.Context
+// for per-call cancellation and timeout control.
+func (c *Client) SubmissionDetailsContext(ctx context.Context, req SubmissionDetailsRequest) (SubmissionDetailsResponse, error) {
 	if req.SID == "" {
 		return SubmissionDetailsResponse{}, ErrEmptySID
 	}
@@ -247,7 +284,7 @@ func (c *Client) SubmissionDetails(req SubmissionDetailsRequest) (SubmissionDeta
 		req.SubmissionIDs += strings.Join(req.SubmissionIDSlice, ",")
 		req.SubmissionIDSlice = nil
 	}
-	return PostDecode[SubmissionDetailsResponse](c, ApiUrl("submissions"), req)
+	return PostDecode[SubmissionDetailsResponse](c.withContext(ctx), ApiUrl("submissions"), req)
 }
 
 func GetSubmissionDetails(req SubmissionDetailsRequest) (SubmissionDetailsResponse, error) {

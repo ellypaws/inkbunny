@@ -4,6 +4,14 @@ import (
 	"strings"
 )
 
+// derefBool safely dereferences a *BooleanYN pointer, returning No if nil.
+func derefBool(b *BooleanYN) BooleanYN {
+	if b == nil {
+		return No
+	}
+	return *b
+}
+
 // Ratings to use when calling Client.ChangeRatings
 //
 //	err := client.ChangeRatings(user, General|Nudity)
@@ -85,11 +93,11 @@ func ParseMask(s string) Ratings {
 func (r Ratings) String() string {
 	// build a 5-byte buffer of '0' or '1'
 	var b [5]byte
-	b[0] = r.General.Byte()
-	b[1] = r.Nudity.Byte()
-	b[2] = r.MildViolence.Byte()
-	b[3] = r.Sexual.Byte()
-	b[4] = r.StrongViolence.Byte()
+	b[0] = derefBool(r.General).Byte()
+	b[1] = derefBool(r.Nudity).Byte()
+	b[2] = derefBool(r.MildViolence).Byte()
+	b[3] = derefBool(r.Sexual).Byte()
+	b[4] = derefBool(r.StrongViolence).Byte()
 
 	// trim trailing '0's by finding the last '1'
 	last := len(b) - 1
@@ -111,19 +119,19 @@ func (r Ratings) String() string {
 //	bit 0 ── StrongViolence
 func (r Ratings) Byte() byte {
 	var b byte
-	if r.General.Bool() {
+	if derefBool(r.General).Bool() {
 		b |= 1 << 4
 	}
-	if r.Nudity.Bool() {
+	if derefBool(r.Nudity).Bool() {
 		b |= 1 << 3
 	}
-	if r.MildViolence.Bool() {
+	if derefBool(r.MildViolence).Bool() {
 		b |= 1 << 2
 	}
-	if r.Sexual.Bool() {
+	if derefBool(r.Sexual).Bool() {
 		b |= 1 << 1
 	}
-	if r.StrongViolence.Bool() {
+	if derefBool(r.StrongViolence).Bool() {
 		b |= 1 << 0
 	}
 	return b

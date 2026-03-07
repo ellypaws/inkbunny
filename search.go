@@ -2,6 +2,8 @@ package inkbunny
 
 import (
 	"bytes"
+	"context"
+	"encoding/json"
 	"fmt"
 	"iter"
 	"regexp"
@@ -68,10 +70,10 @@ type SubmissionSearchRequest struct {
 	// Join type for the words in a string of text being searched for. "and" finds all the words together in the chosen field (default), "or" finds any one of the words, "exact" find the exact phrase.
 	// Note: This property has no effect on searching for MD5 strings (property "MD5" set to "yes"), which always assumes "or" when multiple MD5 Hashes are given.
 	StringJoinType JoinType `json:"string_join_type,omitempty" query:"string_join_type"`
-	// Search Keywords for the chosen text.
+	// SearchInKeywords toggles whether to search Keywords for the chosen text.
 	// Note: This is ON (Yes) by default, and is the standard field that text searches look in, unless specified otherwise.
 	// Note: At least one of keywords, title or description must be set to Yes for text search to work.
-	Keywords *BooleanYN `json:"keywords,omitempty" query:"keywords"`
+	SearchInKeywords *BooleanYN `json:"keywords,omitempty" query:"keywords"`
 	// Search Title for the chosen text.
 	// Note: At least one of keywords, title or description must be set to Yes for text search to work.
 	Title *BooleanYN `json:"title,omitempty" query:"title"`
@@ -208,8 +210,42 @@ type SubmissionSearch struct {
 
 // SearchParam is the search parameters that were used to find these search results.
 type SearchParam struct {
-	Name string `json:"param_name"`
-	Type string `json:"param_type"`
+	Name  string `json:"param_name"`
+	Value string `json:"param_value"`
+	// Type is kept as a compatibility alias for older code that read the search
+	// parameter value from this field before the API tag was corrected.
+	Type string `json:"-"`
+}
+
+func (s *SearchParam) UnmarshalJSON(data []byte) error {
+	type rawSearchParam struct {
+		Name  string `json:"param_name"`
+		Value string `json:"param_value"`
+	}
+
+	var raw rawSearchParam
+	if err := json.Unmarshal(data, &raw); err != nil {
+		return err
+	}
+
+	s.Name = raw.Name
+	s.Value = raw.Value
+	s.Type = raw.Value
+	return nil
+}
+
+func (s SearchParam) MarshalJSON() ([]byte, error) {
+	value := s.Value
+	if value == "" {
+		value = s.Type
+	}
+
+	type rawSearchParam struct {
+		Name  string `json:"param_name"`
+		Value string `json:"param_value"`
+	}
+
+	return json.Marshal(rawSearchParam{Name: s.Name, Value: value})
 }
 
 type SubmissionType int
@@ -273,6 +309,14 @@ func (s *SubmissionTypes) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+// WithClient sets the client used by AllPages, AllSubmissions, AllDetails, and Details.
+// This is useful when a SubmissionSearchResponse has been deserialized or passed
+// across a package boundary and the unexported client field is nil.
+func (s *SubmissionSearchResponse) WithClient(c *Client) *SubmissionSearchResponse {
+	s.client = c
+	return s
+}
+
 // AllPages returns a sequence of all the pages in a submission search response, repeatedly calling Client.SearchSubmissions.
 // Make sure you set SubmissionSearchRequest.GetRID to types.Yes prior or the other pages might not have the correct results.
 // Additionally, one should also check SubmissionSearchResponse.RIDTTLDuration or SubmissionSearchResponse.RIDExpiry.
@@ -288,7 +332,7 @@ func (s SubmissionSearchResponse) AllPages() iter.Seq2[SubmissionSearchResponse,
 			request := SubmissionSearchRequest{
 				SID:  s.SID,
 				RID:  s.RID,
-				Page: i,
+				Page: i + 1,
 			}
 			if !yield(s.client.Get().SearchSubmissions(request)) {
 				return
@@ -334,7 +378,37 @@ func (s SubmissionSearchResponse) Details() (SubmissionDetailsResponse, error) {
 	})
 }
 
+// AllDetails returns an iterator that yields a SubmissionDetailsResponse for each page of
+// search results. The provided SubmissionDetailsRequest is used as a template; SID and
+// SubmissionIDSlice are overwritten per page. Fields like ShowDescription, ShowPools, etc.
+// are forwarded as-is.
+func (s SubmissionSearchResponse) AllDetails(req SubmissionDetailsRequest) iter.Seq2[SubmissionDetailsResponse, error] {
+	return func(yield func(SubmissionDetailsResponse, error) bool) {
+		for page, err := range s.AllPages() {
+			if err != nil {
+				yield(SubmissionDetailsResponse{}, err)
+				return
+			}
+			ids := make([]string, len(page.Submissions))
+			for i, sub := range page.Submissions {
+				ids[i] = sub.SubmissionID.String()
+			}
+			req.SID = page.SID
+			req.SubmissionIDSlice = ids
+			if !yield(s.client.Get().SubmissionDetails(req)) {
+				return
+			}
+		}
+	}
+}
+
 func (u *User) SearchSubmissions(req SubmissionSearchRequest) (SubmissionSearchResponse, error) {
+	return u.SearchSubmissionsContext(context.Background(), req)
+}
+
+// SearchSubmissionsContext is like SearchSubmissions but accepts a context.Context
+// for per-call cancellation and timeout control.
+func (u *User) SearchSubmissionsContext(ctx context.Context, req SubmissionSearchRequest) (SubmissionSearchResponse, error) {
 	if req.SID == "" {
 		if u.SID == "" {
 			return SubmissionSearchResponse{}, ErrNotLoggedIn
@@ -342,17 +416,25 @@ func (u *User) SearchSubmissions(req SubmissionSearchRequest) (SubmissionSearchR
 		req.SID = u.SID
 	}
 
-	return u.Client().SearchSubmissions(req)
+	return u.Client().SearchSubmissionsContext(ctx, req)
 }
 
 func (c *Client) SearchSubmissions(req SubmissionSearchRequest) (SubmissionSearchResponse, error) {
+	return c.SearchSubmissionsContext(c.ctx, req)
+}
+
+// SearchSubmissionsContext is like SearchSubmissions but accepts a context.Context
+// for per-call cancellation and timeout control.
+func (c *Client) SearchSubmissionsContext(ctx context.Context, req SubmissionSearchRequest) (SubmissionSearchResponse, error) {
 	if req.SID == "" {
 		return SubmissionSearchResponse{}, ErrEmptySID
 	}
-	response, err := PostDecode[SubmissionSearchResponse](c, ApiUrl("search"), req)
+	response, err := PostDecode[SubmissionSearchResponse](c.withContext(ctx), ApiUrl("search"), req)
 	if err != nil {
 		return response, err
 	}
+
+	response.client = c
 
 	if response.RIDTTL != "" {
 		response.RIDTTLDuration = TTLToDuration(response.RIDTTL)

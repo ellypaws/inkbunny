@@ -54,15 +54,14 @@ type UploadProgressResponse struct {
 	UserCancelled             string    `json:"usercancelled"`
 }
 
-// UploadStatus values are unknown yet
 type UploadStatus struct {
-	Total        any `json:"total"`
-	Current      any `json:"current"`
-	Rate         any `json:"rate"`
-	Filename     any `json:"filename"`
-	Name         any `json:"name"`
-	CancelUpload any `json:"cancel_upload"`
-	Done         any `json:"done"`
+	Total        IntString   `json:"total"`
+	Current      IntString   `json:"current"`
+	Rate         IntString   `json:"rate"`
+	Filename     FalsyString `json:"filename"`
+	Name         FalsyString `json:"name"`
+	CancelUpload IntString   `json:"cancel_upload"`
+	Done         IntString   `json:"done"`
 }
 
 type DeleteSubmissionResponse struct {
@@ -77,6 +76,14 @@ var (
 )
 
 func (u *UploadStatus) UnmarshalJSON(data []byte) error {
+	if len(data) == 0 || string(data) == "null" {
+		return nil
+	}
+	if data[0] == '{' {
+		type uploadStatus UploadStatus
+		return json.Unmarshal(data, (*uploadStatus)(u))
+	}
+
 	var aux []json.RawMessage
 	if err := json.Unmarshal(data, &aux); err != nil {
 		return err

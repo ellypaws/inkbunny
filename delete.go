@@ -13,7 +13,7 @@ type DeleteFileResponse struct {
 type ReorderFileResponse struct {
 	SubmissionID IntString `json:"submission_id"`
 	FileID       IntString `json:"file_id"`
-	NewPosition  IntString `json:"new_position"`
+	NewPosition  IntString `json:"newpos"`
 }
 
 func (u *User) DeleteFile(id int) (DeleteFileResponse, error) {
