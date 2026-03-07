@@ -5,15 +5,22 @@ import (
 	"strconv"
 )
 
+// DeleteFileResponse is the response from api_delfile.php.
 type DeleteFileResponse struct {
+	// SubmissionID is the submission the file was removed from.
 	SubmissionID IntString `json:"submission_id"`
-	FileID       IntString `json:"file_id"`
+	// FileID is the deleted file ID.
+	FileID IntString `json:"file_id"`
 }
 
+// ReorderFileResponse is the response from api_reorderfile.php.
 type ReorderFileResponse struct {
+	// SubmissionID is the submission that owns the file.
 	SubmissionID IntString `json:"submission_id"`
-	FileID       IntString `json:"file_id"`
-	NewPosition  IntString `json:"newpos"`
+	// FileID is the reordered file ID.
+	FileID IntString `json:"file_id"`
+	// NewPosition is the file's new zero-based position.
+	NewPosition IntString `json:"newpos"`
 }
 
 func (u *User) DeleteFile(id int) (DeleteFileResponse, error) {

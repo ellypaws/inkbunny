@@ -1,7 +1,10 @@
 package inkbunny
 
+// ErrorResponse is the standard error payload returned by Inkbunny.
 type ErrorResponse struct {
-	Code    *int   `json:"error_code,omitempty"`
+	// Code is the numeric Inkbunny error code when one is provided.
+	Code *int `json:"error_code,omitempty"`
+	// Message is the human-readable error message returned by Inkbunny.
 	Message string `json:"error_message"`
 }
 
@@ -9,7 +12,7 @@ func (error ErrorResponse) Error() string {
 	return error.Message
 }
 
-// Error code constants matching the Inkbunny API error codes.
+// Error code constants matching Inkbunny's documented error codes.
 // See https://wiki.inkbunny.net/wiki/API#Error_Codes for reference.
 const (
 	ErrInvalidLogin                      = 0   // Invalid login. Username and password incorrect or account does not have API Access enabled in account Settings.

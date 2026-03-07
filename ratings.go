@@ -23,7 +23,8 @@ const (
 	StrongViolence
 )
 
-// Ratings - Binary string representation of the users Allowed Ratings choice. The bits are in this order left-to-right:
+// Ratings is the session rating mask used by change-ratings and autocomplete endpoints.
+// Binary string representation of the users Allowed Ratings choice. The bits are in this order left-to-right:
 // Eg: A string 11100 means only items rated General, Nudity and Violence are allowed, but Sex and Strong Violence are blocked.
 // A string 11111 means items of any rating would be shown. Only 'left-most significant bits' are returned. So 11010 and 1101 are the same, and 10000 and 1 are the same.
 // Ratings implements json.Unmarshaler which converts string or uint8 bitmask into Ratings.
@@ -50,16 +51,12 @@ func (r Ratings) MarshalText() ([]byte, error) {
 //	ratings := ParseMaskU(General|Nudity)
 func ParseMaskU(mask uint8) Ratings {
 	return Ratings{
-		General:        (*BooleanYN)(Address(mask&General != 0)),
-		Nudity:         (*BooleanYN)(Address(mask&Nudity != 0)),
-		MildViolence:   (*BooleanYN)(Address(mask&MildViolence != 0)),
-		Sexual:         (*BooleanYN)(Address(mask&Sexual != 0)),
-		StrongViolence: (*BooleanYN)(Address(mask&StrongViolence != 0)),
+		General:        (*BooleanYN)(new(mask&General != 0)),
+		Nudity:         (*BooleanYN)(new(mask&Nudity != 0)),
+		MildViolence:   (*BooleanYN)(new(mask&MildViolence != 0)),
+		Sexual:         (*BooleanYN)(new(mask&Sexual != 0)),
+		StrongViolence: (*BooleanYN)(new(mask&StrongViolence != 0)),
 	}
-}
-
-func Address[T any](v T) *T {
-	return &v
 }
 
 // ParseMask returns a Ratings based on a ratings bitmask. True is 1, false is 0

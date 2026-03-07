@@ -13,30 +13,55 @@ import (
 	"slices"
 )
 
+// FileUpload is one entry in UploadRequest.Files.
+//
+// Use MainFile for the file itself, Thumbnail for an optional custom thumbnail,
+// and Replace when updating an existing file on a submission.
 type FileUpload struct {
-	Replace   string
-	MainFile  *FileContent
+	// Replace is the existing file ID to replace, when modifying a submission.
+	Replace string
+	// MainFile is the primary uploaded file.
+	MainFile *FileContent
+	// Thumbnail is the optional uploaded thumbnail.
 	Thumbnail *FileContent
 }
 
+// FileContent is the package upload wrapper around a filename and io.Reader.
 type FileContent struct {
+	// Name is the filename sent to Inkbunny.
 	Name string
+	// File is the file content stream.
 	File io.Reader
 }
 
+// UploadRequest configures Client.Upload.
+//
+// This type intentionally uses plain Go values instead of mirroring the raw
+// form expected by Inkbunny
+// form exactly. Notify uses bool, file payloads are carried separately from JSON
+// tags, and Context can override the client's default request context.
 type UploadRequest struct {
 	Context context.Context `json:"-"` // Override the context.Context used instead of the one in Client.
 
-	SID          string       `json:"sid"`
-	SubmissionID string       `json:"submission_id,omitempty"`
-	ProgressKey  string       `json:"progress_key,omitempty"` // Deprecated: currently broken in the API
-	Notify       bool         `json:"notify,omitempty"`
-	Files        []FileUpload `json:"-"`
-	ZipFile      *FileContent `json:"-"`
+	// SID overrides the client's current session for this upload.
+	SID string `json:"sid"`
+	// SubmissionID appends to an existing submission. Leave it empty to create a new one.
+	SubmissionID string `json:"submission_id,omitempty"`
+	// ProgressKey enables UploadProgress when Inkbunny supports it.
+	ProgressKey string `json:"progress_key,omitempty"` // Deprecated: currently broken in the API
+	// Notify follows the upload endpoint's watcher-notification behavior.
+	Notify bool `json:"notify,omitempty"`
+	// Files is the ordered list of files to upload.
+	Files []FileUpload `json:"-"`
+	// ZipFile uploads one ZIP archive instead of explicit Files.
+	ZipFile *FileContent `json:"-"`
 }
 
+// UploadResponse is returned by Client.Upload.
 type UploadResponse struct {
-	SID          string `json:"sid"`
+	// SID is the current session ID.
+	SID string `json:"sid"`
+	// SubmissionID is the submission created or modified by the upload.
 	SubmissionID string `json:"submission_id"`
 
 	ProgressKey *string `json:"-"`
@@ -44,27 +69,46 @@ type UploadResponse struct {
 	client      *Client
 }
 
+// UploadProgressResponse is returned by UploadProgress.
+//
+// Numeric fields use IntString because Inkbunny returns string-encoded numbers.
 type UploadProgressResponse struct {
-	Status UploadStatus `json:"status"` // The following values relate to the upload portion of the upload process, while the files are being received from the client.
-	// The following values relate to the processing portion of the upload process, once the files have all been received from the client.
-	FilesCount                IntString `json:"filescount"`
-	FilesCompleteCount        IntString `json:"filescompletecount"`
-	CurFilename               string    `json:"curfilename"`
+	// Status describes the transfer portion of the upload.
+	Status UploadStatus `json:"status"`
+	// FilesCount is the total number of files being processed after transfer.
+	// FilesCount is the total number of files being processed.
+	FilesCount IntString `json:"filescount"`
+	// FilesCompleteCount is the number of completed files.
+	FilesCompleteCount IntString `json:"filescompletecount"`
+	// CurFilename is the file currently being processed.
+	CurFilename string `json:"curfilename"`
+	// LastUserResponseEpochSecs is the last poll time, in Unix epoch seconds.
 	LastUserResponseEpochSecs IntString `json:"lastuserresponse_epoch_secs"`
-	UserCancelled             string    `json:"usercancelled"`
+	// UserCancelled reports whether the user cancelled the upload.
+	UserCancelled string `json:"usercancelled"`
 }
 
+// UploadStatus contains the transfer progress reported by UploadProgress.
 type UploadStatus struct {
-	Total        IntString   `json:"total"`
-	Current      IntString   `json:"current"`
-	Rate         IntString   `json:"rate"`
-	Filename     FalsyString `json:"filename"`
-	Name         FalsyString `json:"name"`
-	CancelUpload IntString   `json:"cancel_upload"`
-	Done         IntString   `json:"done"`
+	// Total is the total upload size in bytes.
+	Total IntString `json:"total"`
+	// Current is the number of uploaded bytes so far.
+	Current IntString `json:"current"`
+	// Rate is the transfer rate in bytes per second.
+	Rate IntString `json:"rate"`
+	// Filename is the current file name.
+	Filename FalsyString `json:"filename"`
+	// Name is the multipart field name.
+	Name FalsyString `json:"name"`
+	// CancelUpload reports whether cancellation has been requested.
+	CancelUpload IntString `json:"cancel_upload"`
+	// Done reports whether the transfer portion is complete.
+	Done IntString `json:"done"`
 }
 
+// DeleteSubmissionResponse is the deletion result used by UploadResponse.Delete.
 type DeleteSubmissionResponse struct {
+	// SubmissionID is the deleted submission ID.
 	SubmissionID string `json:"submission_id"`
 }
 

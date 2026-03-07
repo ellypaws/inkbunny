@@ -12,6 +12,7 @@ import (
 
 var DefaultClient = NewClient()
 
+// Client is the shared HTTP client used to call the Inkbunny API.
 type Client struct {
 	ctx    context.Context
 	client *http.Client
@@ -62,6 +63,12 @@ func (c *Client) SetClient(client *http.Client) {
 
 func (c *Client) SetTimeout(timeout time.Duration) {
 	c.client.Timeout = timeout
+}
+
+// withContext returns a shallow copy of c with the given context substituted.
+// This is used by the *Context variants to avoid mutating the original Client.
+func (c *Client) withContext(ctx context.Context) *Client {
+	return &Client{ctx: ctx, client: c.client}
 }
 
 const (

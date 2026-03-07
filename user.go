@@ -6,12 +6,20 @@ import (
 	"net/url"
 )
 
+// User is the session-scoped handle returned by Login.
+//
+// It carries the current SID plus a small amount of account metadata that is
+// reused by the package's convenience methods.
 type User struct {
-	client   *Client
-	SID      string    `json:"sid" query:"sid"`
-	Username string    `json:"username,omitempty" query:"username"`
-	UserID   IntString `json:"user_id,omitempty" query:"user_id"`
-	Ratings  Ratings   `json:"ratingsmask,omitempty" query:"ratingsmask"`
+	client *Client
+	// SID is the current session ID.
+	SID string `json:"sid" query:"sid"`
+	// Username is the current username.
+	Username string `json:"username,omitempty" query:"username"`
+	// UserID is the current user ID.
+	UserID IntString `json:"user_id,omitempty" query:"user_id"`
+	// Ratings is the current session's active ratings mask, using the Ratings helper type.
+	Ratings Ratings `json:"ratingsmask,omitempty" query:"ratingsmask"`
 }
 
 func (u *User) Client() *Client {
@@ -101,5 +109,42 @@ func (u *User) ChangeRatings(ratings Ratings) error {
 		return ErrUnexpectedSID
 	}
 	u.Ratings = ratings
+	return nil
+}
+
+// DeleteSubmission deletes a submission by its ID.
+// Unlike UploadResponse.Delete, this can be called at any time with a known submission ID.
+func (u *User) DeleteSubmission(submissionID string) error {
+	if u.SID == "" {
+		return ErrNotLoggedIn
+	}
+	resp, err := PostDecode[DeleteSubmissionResponse](
+		u.Client(), ApiUrl("delsubmission"),
+		url.Values{"sid": {u.SID}, "submission_id": {submissionID}},
+	)
+	if err != nil {
+		return err
+	}
+	if resp.SubmissionID != submissionID {
+		return ErrUnexpectedSubmissionID
+	}
+	return nil
+}
+
+// DeleteSubmission deletes a submission by its ID using the provided session ID.
+func DeleteSubmission(sid, submissionID string) error {
+	if sid == "" {
+		return ErrEmptySID
+	}
+	resp, err := PostDecode[DeleteSubmissionResponse](
+		DefaultClient, ApiUrl("delsubmission"),
+		url.Values{"sid": {sid}, "submission_id": {submissionID}},
+	)
+	if err != nil {
+		return err
+	}
+	if resp.SubmissionID != submissionID {
+		return ErrUnexpectedSubmissionID
+	}
 	return nil
 }

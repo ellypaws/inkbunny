@@ -12,160 +12,90 @@ import (
 	"time"
 )
 
+// SubmissionSearchRequest configures Client.SearchSubmissions.
+//
+// Most filter fields are simple strings or IntString values because Inkbunny is
+// permissive about string-encoded numbers. Boolean toggles use BooleanYN or
+// *BooleanYN so callers can distinguish between sending No and leaving Inkbunny's
+// default unchanged. Common documented defaults include JSON, 30, 1, No, No,
+// No, FieldJoinTypeOr, JoinTypeAnd, Yes, No, No, No,
+// OrderByCreateDatetime, No, ScrapsBoth, and 50000.
 type SubmissionSearchRequest struct {
-	SID        string     `json:"sid" query:"sid"`
+	// SID overrides the client's current session for this call.
+	SID string `json:"sid" query:"sid"`
+	// OutputMode selects the response format. Use JSON or XML.
+	// Defaults to JSON.
 	OutputMode OutputMode `json:"output_mode,omitempty" query:"output_mode"`
-	// Setting an RID uses Mode 2: Page through results.
-	//
-	// Using a Results ID (RID), which can be returned by any search in Mode 1, you can specify a results set to page through.
-	// This means you can run the search once in Mode 1, and then return the results page by page without running the search again.
-	// This is much faster than using Mode 1 over and over again to get each subsequent page of results.
-	//
-	// The disadvantage is that the results are not updated between requests.
-	// If submissions are added, changed or deleted in a way that would alter the current search results, you will not see the change until the search is run again with Mode 1.
-	// Note: If you specify an RID, the search script will ignore all "Mode 1" search parameters.
-	//
-	// Results ID of results set to page through. To get an RID to use here, run a search (Mode 1, as described above) with GetRID: Yes first.
-	// Then use the returned RID here to page through those results without needing to run the same search again. Only used for Mode 2, as described above.
-	// Note: Results sets will be automatically removed after not being accessed for a certain amount of time, or if an excess number of results sets are created by a user.
-	// Attempting to access a results set that has been removed will throw an error. See the [Error Codes] section in this document.
-	//
-	// [Error Codes]: https://wiki.inkbunny.net/wiki/API#Error_Codes
-	RID               string    `json:"rid,omitempty" query:"rid"`
+	// RID pages through an existing result set instead of running a fresh search.
+	// When set, Inkbunny ignores the mode-1 search filters below.
+	RID string `json:"rid,omitempty" query:"rid"`
+	// SubmissionIDsOnly requests only submission IDs instead of full objects.
+	// Defaults to No.
 	SubmissionIDsOnly BooleanYN `json:"submission_ids_only,omitempty" query:"submission_ids_only"`
-	// Number of submissions to return per page of results.
-	// Integer from 0 to 100. Default: 30.
+	// SubmissionsPerPage limits a page to at most 100 results. Defaults to 30.
 	SubmissionsPerPage IntString `json:"submissions_per_page,omitempty" query:"submissions_per_page"`
-	// Results page number to return. Default: 1.
+	// Page selects the page number. Defaults to 1.
 	Page IntString `json:"page,omitempty" query:"page"`
-	// Not to be confused with Text. This is a boolean value to return list of Top 100 Keywords.
-	// Return list of Top 100 Keywords associated with all submissions on current results page.
-	// Note that this list includes both officially assigned keywords and also keywords
-	// suggested for this submission by other users.
+	// KeywordsList asks Inkbunny to populate KeywordList in the response. Use Yes or No.
+	// Defaults to No.
 	KeywordsList BooleanYN `json:"keywords_list,omitempty" query:"keywords_list"`
-	// Skip returning submission info.
-	// Useful when you are just returning Top Keywords or Submission Counts for searches, and you don't want all the other submission data.
+	// NoSubmissions suppresses full submission payloads when only counts or keywords are needed.
+	// Defaults to No.
 	NoSubmissions BooleanYN `json:"no_submissions,omitempty" query:"no_submissions"`
-	// Return a Results ID for this search, which can then be used in Mode 2 (By setting the RID) to page through the results without running the search again for each page.
+	// GetRID asks Inkbunny to return a reusable RID for later paging.
+	// Defaults to No.
 	GetRID BooleanYN `json:"get_rid,omitempty" query:"get_rid"`
 
-	// Search Condition Parameters (Only used in Mode 1)
-	// Note: If you send a Results ID (the parameter "rid", above) then the search runs in Mode 2 and these Search Condition parameters are ignored.
-
-	// FieldJoinType Defines the union between keywords, description, writing and title search fields. Possible values are "or", "and".
-	//   - "or" will return submissions found that have the search text in any one of the chosen fields (The default and recommended settings).
-	//   - "and" will ONLY return submissions that have the search text found in ALL of the chosen fields (unusual and not recommended).
+	// FieldJoinType combines keyword, title, and description-style field matches.
+	// Use FieldJoinTypeOr or FieldJoinTypeAnd. Defaults to FieldJoinTypeOr.
 	FieldJoinType FieldJoinType `json:"field_join_type,omitempty" query:"field_join_type"`
-	// Text to search chosen fields for. eg "dragon", "wolf", etc.
-	// A Full Text search is performed using this string (see the meaning of Full Text searches in the Postgresql Documentation).
-	// The characters "_" and "," are converted to spaces automatically.
-	// Characters which have special meanings for Full Text searches in Postgresql (such as |, &, :, ! and ~) are ignored.
-	//
-	// Note: At least one of the Search Field parameters Keywords, Title, Description or MD5 must be set to Yes for text search to work.
-	// By default, Keywords is set to Yes, so all searches with no Search Field specified will search in keywords.
-	// Values: (Any text string).
-	//
-	// Default: n/a. Required: No
+	// Text is the free-text query used by the selected search fields.
 	Text string `json:"text,omitempty" query:"text"`
-	// Join type for the words in a string of text being searched for. "and" finds all the words together in the chosen field (default), "or" finds any one of the words, "exact" find the exact phrase.
-	// Note: This property has no effect on searching for MD5 strings (property "MD5" set to "yes"), which always assumes "or" when multiple MD5 Hashes are given.
+	// StringJoinType controls how words inside Text are matched.
+	// Use JoinTypeAnd, JoinTypeOr, or JoinTypeExact. Defaults to JoinTypeAnd.
 	StringJoinType JoinType `json:"string_join_type,omitempty" query:"string_join_type"`
-	// SearchInKeywords toggles whether to search Keywords for the chosen text.
-	// Note: This is ON (Yes) by default, and is the standard field that text searches look in, unless specified otherwise.
-	// Note: At least one of keywords, title or description must be set to Yes for text search to work.
+	// SearchInKeywords toggles keyword matching for Text.
+	// Nil keeps the default, which is Yes.
 	SearchInKeywords *BooleanYN `json:"keywords,omitempty" query:"keywords"`
-	// Search Title for the chosen text.
-	// Note: At least one of keywords, title or description must be set to Yes for text search to work.
+	// Title toggles title matching for Text.
+	// Nil keeps the default, which is No.
 	Title *BooleanYN `json:"title,omitempty" query:"title"`
-	// Search the Description AND Story fields for the chosen text.
-	// Note: At least one of keywords, title or description must be set to Yes for text search to work.
+	// Description toggles description and writing matching for Text.
+	// Nil keeps the default, which is No.
 	Description *BooleanYN `json:"description,omitempty" query:"description"`
-	// Search for the chosen text in the MD5 Checksum/hash of the Initial.
-	// (as uploaded and before any conversion), Full (may have metadata removed and
-	// optimised for lossless compression), Large (also known as Screen), Small, or
-	// HiRes/Sales versions of a file.
-	// This is useful for finding files based on their content, and for finding identical files.
-	//
-	//	* Although the MD5 Hash for the HiRes/Sales file is only shown to the Submission owner, they are still found when anyone runs an MD5 search.
-	//	* Deleted Files - This search will also find submissions based the MD5 of free and sales files that are marked deleted (that have been removed from a submission). This is to assist with finding submissions even if their files are updated later.
-	//	* The property "string_join_type" has no effect on searching for MD5 strings. It always assumes Or when multiple MD5 Hashes are given.
-	//	* See [MD5 Checksums] for more information on how MD5 is used in Inkbunny.
-	//
-	// [MD5 Checksums]: https://wiki.inkbunny.net/wiki/MD5
+	// MD5 switches Text into MD5-search mode. Nil keeps the default, which is No.
 	MD5 *BooleanYN `json:"md5,omitempty" query:"md5"`
-	// Keyword ID to search for. Overrides text search and all its options.
+	// KeywordID bypasses text search and filters directly by keyword ID.
 	KeywordID IntString `json:"keyword_id,omitempty" query:"keyword_id"`
-	// Limit results to those uploaded/owned by user with this Username only. Must be exact, but is case-insensitive. May includes non-published submissions if run by a moderator.
+	// Username restricts results to one owner username.
 	Username string `json:"username,omitempty" query:"username"`
-	// Limit results to those uploaded/owned by user with this User ID. May include non-published submissions if run by the relevant user, or a moderator.
+	// UserID restricts results to one owner user ID.
 	UserID IntString `json:"user_id,omitempty" query:"user_id"`
-	// Limit results to favorites of the user with this User ID only.
+	// FavsUserID restricts results to a user's favorites.
 	FavsUserID IntString `json:"favs_user_id,omitempty" query:"favs_user_id"`
-	// Boolean. Limit results to those which are New Unread Submissions for the
-	// currently logged in user.
-	//
-	// Note: This will return anything in the user's
-	// unread submissions list, even if it would normally be blocked by ratings or
-	// keywords. Items only end up in the unread submissions list in the first place
-	// if they pass the blocking checks. So blocked items would only be returned
-	// here if they had their keywords or ratings changed after they were added to
-	// this user's list.
+	// UnreadSubmissions restricts results to the current session's unread feed.
 	UnreadSubmissions BooleanYN `json:"unread_submissions,omitempty" query:"unread_submissions"`
-	// Limit results to submissions with this type id. Multiple type ids are allowed.
-	// Available IDs are
-	//  1. Picture/Pinup
-	//  2. Sketch
-	//  3. Picture Series
-	//  4. Comic
-	//  5. Portfolio
-	//  6. Shockwave/Flash - Animation
-	//  7. Shockwave/Flash - Interactive
-	//  8. Video - Feature Length
-	//  9. Video - Animation/3D/CGI
-	//  10. Music - Single Track
-	//  11. Music - Album
-	//  12. Writing - Document
-	//  13. Character Sheet
-	//  14. Photography - Fursuit/Sculpture/Jewelry/etc
+	// Type restricts results to one or more SubmissionType values.
+	// Use SubmissionType* constants.
 	Type SubmissionTypes `json:"type,omitempty" query:"type"`
-	// SalesFilter for SubmissionSearchRequest.
-	//
-	// Filter by sales status. Possible options are "forsale" (for sale by any
-	// method), "digital" (digital sales), "prints" (print sales).
+	// Sales filters on legacy sales state. Use SalesFilter* constants when needed.
 	// Deprecated: Sales are no longer part of Inkbunny.
-	Sales  SalesFilter `json:"sales,omitempty" query:"sales"`
-	PoolID IntString   `json:"pool_id,omitempty" query:"pool_id"`
-	// Order search results by selected criteria.
-	// Possible values are:
-	//  - create_datetime - date submission was uploaded.
-	//  - last_file_update_datetime - date the most recent file attached to the submission was added/changed. Submissions with no attached files will be listed last.
-	//  - unread_datetime – DESCENDING date that submission was added to the user's unread submissions list (newest first). Only for use when "unread_submissions=yes" is set.
-	//  - unread_datetime_reverse – ASCENDING date that submission was added to the user's unread submissions list (oldest first). Only for use when "unread_submissions=yes" is set.
-	//  - views – Number of times submission has been viewed.
-	//  - total_print_sales – Number of times submission has sold as a print.
-	//  - total_digital_sales – Number of times submission has sold as a download.
-	//  - total_sales – Number of times a submission has been sold in total, of any sale type.
-	//  - username - artist name.
-	//  - fav_datetime - date image was set as a favorite by target user. Only for use when "favs_user_id" is set.
-	//  - fav_stars - number of stars assigned to favorite by target user. Only for use when "favs_user_id" is set.
-	//  - pool_order - submission order specified for the target pool. Only for use when "pool_id" is set.
-	OrderBy   OrderBy   `json:"orderby,omitempty" query:"orderby"`
+	Sales SalesFilter `json:"sales,omitempty" query:"sales"`
+	// PoolID restricts results to one pool.
+	PoolID IntString `json:"pool_id,omitempty" query:"pool_id"`
+	// OrderBy controls sorting. Use OrderBy* constants.
+	// Defaults to OrderByCreateDatetime.
+	OrderBy OrderBy `json:"orderby,omitempty" query:"orderby"`
+	// DaysLimit restricts results to submissions from the last N days.
 	DaysLimit IntString `json:"dayslimit,omitempty" query:"dayslimit"`
-	// Sort results randomly. This is done after all other filters and sort orders
-	// are applied. This can be used in conjunction with "orderby". You can order
-	// results with OrderBy, limit the number returned with other filters like
-	// CountLimit, and then if Random: Yes it will sort those results randomly.
-	// Eg: Set OrderBy: OrderByViews and CountLimit: 100 to get the top 100 submissions,
-	// then with "random=yes" those top 100 are sorted randomly AFTER the other
-	// limits and conditions are used. Does your head hurt? Mine does.
+	// Random shuffles the final result set after filtering and ordering. Use Yes or No.
+	// Defaults to No.
 	Random BooleanYN `json:"random,omitempty" query:"random"`
-	// Scraps Set how submissions marked as "Scraps" are returned.
-	// Possible values are:
-	// 	both – show submissions from Scraps and Main galleries.
-	// 	no – Do not show Scraps. Shows only submissions from Main galleries.
-	// 	only – Show only submissions from Scraps galleries, not Main galleries.
+	// Scraps controls scraps filtering. Use ScrapsBoth, ScrapsNo, or ScrapsOnly.
+	// Defaults to ScrapsBoth.
 	Scraps Scraps `json:"scraps,omitempty" query:"scraps"`
-	// Limit number of returned results. Minimum is 1. Maximum is 50000.
+	// CountLimit caps the total number of matches considered by Inkbunny.
+	// Defaults to 50000.
 	CountLimit IntString `json:"count_limit,omitempty" query:"count_limit"`
 }
 
@@ -178,34 +108,57 @@ const (
 )
 
 type SubmissionSearchResponse struct {
-	SID                  string             `json:"sid"`
-	UserLocation         string             `json:"user_location"`
-	ResultsCountAll      IntString          `json:"results_count_all"`
-	ResultsCountThisPage IntString          `json:"results_count_thispage"`
-	PagesCount           IntString          `json:"pages_count"`
-	Page                 IntString          `json:"page"`
-	RID                  string             `json:"rid,omitempty"`
-	RIDTTL               string             `json:"rid_ttl,omitempty"`
-	RIDTTLDuration       time.Duration      `json:"-"`
-	RIDExpiry            time.Time          `json:"-"`
-	SearchParams         []SearchParam      `json:"search_params"`
-	KeywordList          []KeywordList      `json:"keyword_list,omitempty"`
-	Submissions          []SubmissionSearch `json:"submissions,omitempty"`
-	client               *Client
+	// SID is the current session ID.
+	SID string `json:"sid"`
+	// UserLocation identifies the location used for user-time timestamps.
+	UserLocation string `json:"user_location"`
+	// ResultsCountAll is the total number of results across all pages.
+	ResultsCountAll IntString `json:"results_count_all"`
+	// ResultsCountThisPage is the number of results on the current page.
+	ResultsCountThisPage IntString `json:"results_count_thispage"`
+	// PagesCount is the total number of result pages.
+	PagesCount IntString `json:"pages_count"`
+	// Page is the current page number.
+	Page IntString `json:"page"`
+	// RID is the reusable result-set ID when GetRID was enabled.
+	RID string `json:"rid,omitempty"`
+	// RIDTTL is the server's human-readable lifetime string for RID.
+	RIDTTL string `json:"rid_ttl,omitempty"`
+	// RIDTTLDuration is the package-parsed duration derived from RIDTTL.
+	RIDTTLDuration time.Duration `json:"-"`
+	// RIDExpiry is the package-computed expiry time when RIDTTLDuration is available.
+	RIDExpiry time.Time `json:"-"`
+	// SearchParams echoes the search parameters used to build the result set.
+	SearchParams []SearchParam `json:"search_params"`
+	// KeywordList contains top keywords for the current result page when requested.
+	KeywordList []KeywordList `json:"keyword_list,omitempty"`
+	// Submissions contains the returned search results unless suppressed.
+	Submissions []SubmissionSearch `json:"submissions,omitempty"`
+	client      *Client
 }
 
+// KeywordList describes one keyword aggregate from a search response.
 type KeywordList struct {
-	KeywordID        IntString `json:"keyword_id"`
-	KeywordName      string    `json:"keyword_name"`
+	// KeywordID is the keyword ID.
+	KeywordID IntString `json:"keyword_id"`
+	// KeywordName is the keyword text.
+	KeywordName string `json:"keyword_name"`
+	// SubmissionsCount is the systemwide count of submissions tagged with the keyword.
 	SubmissionsCount IntString `json:"submissions_count"`
 }
 
+// SubmissionSearch is the per-result submission model returned by search.
 type SubmissionSearch struct {
+	// SubmissionBasic contains the fields shared with submission-details responses.
 	SubmissionBasic
-	UnreadDateSystem string    `json:"unread_datetime_system,omitempty"`
-	UnreadDateUser   string    `json:"unread_datetime,omitempty"`
-	Updated          BooleanYN `json:"updated,omitempty"`
-	Stars            IntString `json:"stars,omitempty"`
+	// UnreadDateSystem is when the submission entered the unread list in system time.
+	UnreadDateSystem string `json:"unread_datetime,omitempty"`
+	// UnreadDateUser is when the submission entered the unread list in the user's local time.
+	UnreadDateUser string `json:"unread_datetime_usertime,omitempty"`
+	// Updated reports whether the unread submission was updated since it was added.
+	Updated BooleanYN `json:"updated,omitempty"`
+	// Stars is the favorite-star count when the search mode includes favorites.
+	Stars IntString `json:"stars,omitempty"`
 }
 
 // SearchParam is the search parameters that were used to find these search results.
@@ -213,7 +166,7 @@ type SearchParam struct {
 	Name  string `json:"param_name"`
 	Value string `json:"param_value"`
 	// Type is kept as a compatibility alias for older code that read the search
-	// parameter value from this field before the API tag was corrected.
+	// parameter value from this field before the Inkbunny tag mapping was corrected.
 	Type string `json:"-"`
 }
 

@@ -5,87 +5,73 @@ import (
 	"io"
 )
 
-// SubmissionEditRequest represents a request to edit an existing submission on Inkbunny.
+// SubmissionEditRequest configures Client.EditSubmission.
 //
-// Field behavior:
-// - Required fields: SID and SubmissionID
-// - Optional fields: Use pointers for optional string and boolean fields
-//
-// Nil vs Empty values:
-// - Nil pointers (*string, *types.BooleanYN): Field will be omitted from the request (no change)
-// - Empty string: Will clear/remove the existing value
-// - Empty slice (Keywords): Will remove all keywords if included in request
-//
-// Examples:
-// - To leave Title unchanged: Title: nil
-// - To clear Title: Title: ptr("")
-// - To set a new Title: Title: ptr("New Title")
-// - To remove all Keywords: Keywords: []string{} (empty slice)
-// - To preserve Keywords: Don't include Keywords field (nil)
-//
-// Warning: Any field that is sent in the request (even if empty) will replace the existing value.
-// To preserve existing values, use nil for pointer fields and don't include non-pointer fields.
+// Optional string and BooleanYN fields use pointers so callers can distinguish
+// between "leave unchanged" and "set an explicit empty or no value". The helper
+// new is convenient for building these pointers in calling code.
 type SubmissionEditRequest struct {
-	// SID is the session ID obtained from login. Required.
-	// Can be left blank if calling from User, otherwise it will override.
+	// SID overrides the current user session for this call.
 	SID string `json:"sid"`
-	// SubmissionID is the ID of the submission to edit. Required.
+	// SubmissionID identifies the submission to edit.
 	SubmissionID IntString `json:"submission_id"`
-	Title        *string   `json:"title,omitempty"`
-	Description  *string   `json:"desc,omitempty"`
-	Story        io.Reader `json:"story,omitempty"`
-	// Should html entities (eg: &nbsp; &gt; &#1234;) in uploaded text (title, desc,
-	// story) be converted to normal characters before being saved? Boolean. Note:
-	// By default, html entities will be treated as plain text and will not be
-	// converted back to regular characters for display on the Inkbunny website. Eg:
-	// If you upload the text &nbsp; as part of a title, it will display literally
-	// as &nbsp; on the web page. If your uploaded text is likely to contain html
-	// entities then always set this option to types.Yes
-	ConvertHTMLEntities BooleanYN      `json:"convert_html_entities,omitempty"`
-	SubmissionType      SubmissionType `json:"type,omitempty"`
-	Scraps              *BooleanYN     `json:"scraps,omitempty"`
-	// Announce this submission via the owner's Twitter account, if configured and
-	// enabled. If this property is set to "yes", then the announcement occurs the
-	// first time the submission is set Public. Note that announcement via Twitter
-	// only occurs if the owner's Twitter account is authenticated via their account
-	// settings at https://inkbunny.net/account.php, they have "Tweet Submissions"
-	// turned on in their account settings, and "use_twitter" is enabled for this
-	// submission. Boolean.
+	// Title replaces the submission title when set.
+	Title *string `json:"title,omitempty"`
+	// Description replaces the submission description when set.
+	Description *string `json:"desc,omitempty"`
+	// Story replaces the submission writing or story text when set.
+	Story io.Reader `json:"story,omitempty"`
+	// ConvertHTMLEntities enables HTML-entity decoding on text fields.
+	// Should html entities (eg: &nbsp; &gt; &#1234;) in uploaded text (title, desc, story) be converted to normal characters before being saved? Boolean.
+	// Note: By default, html entities will be treated as plain text and will not be converted back to regular characters for display on the Inkbunny website.
+	// Eg: If you upload the text &nbsp; as part of a title, it will display literally as &nbsp; on the web page.
+	// If your uploaded text is likely to contain html entities then always set this option to Yes.
+	// Use Yes or No.
+	ConvertHTMLEntities BooleanYN `json:"convert_html_entities,omitempty"`
+	// SubmissionType replaces the submission type when non-zero.
+	// Use SubmissionType* constants.
+	SubmissionType SubmissionType `json:"type,omitempty"`
+	// Scraps moves the submission into or out of scraps when set. Use Yes or No.
+	Scraps *BooleanYN `json:"scraps,omitempty"`
+	// UseTwitter enables tweet-on-publish behavior when the account supports it.
+	// Use Yes, No, or nil to leave the current setting unchanged.
+	// Inkbunny has no default here; omitted means no update is made.
 	UseTwitter *BooleanYN `json:"use_twitter,omitempty"`
-	// Lets you choose if you want to send an image along in the tweet announcing the submission. Available Options are:
-	// 0 - Send only Text
-	// 1 - Send the Thumbnail (if a custom thumbnail was added, it will send that one. If not, the generated one)
-	// 2 - Send the Full Picture (it will send a proportional, 920px-wide version of the full picture)
-	// Values: (Twitter Image Preference ID). Default: set on upload to current user preference, which defaults to 1. Required: No
+	// TwitterImagePref controls the tweet image mode.
+	// Inkbunny currently expects 0 for text only, 1 for thumbnail, and 2 for full image.
+	// When omitted, Inkbunny leaves the current value unchanged.
 	TwitterImagePref *int `json:"twitter_image_pref,omitempty"`
-	// Change Public/Non-Public status of the submission.
-	// Setting this to true will also set Notify to true by default unless overridden.
+	// Public maps to the visibility field using BooleanYN semantics.
+	// Inkbunny has no default here; omitted means no update is made.
+	// When set to Yes, the package defaults Notify to Yes unless overridden.
 	Public *BooleanYN `json:"visibility,omitempty"`
-	// Notify notifies watchers if it is the first time the submission has been set public.
-	// Will only announce the first time a submission is set to Public, and if Public is set to true.
-	// Default (nil) is true if Public is set to true.
+	// Notify overrides the package's default watcher notification behavior for Public.
+	// This package defaults Notify to Yes when Public is Yes. The raw notify parameter
+	// defaults to No.
 	Notify *BooleanYN `json:"-"`
-	// Keywords for this submission. Keyword entries must be separated by commas or
-	// spaces. When adding new keywords, all the old keywords must be specified here
-	// too. The entry here entirely REPLACES the existing keywords list for this
-	// submission. Sending the keywords variable but leaving its value blank will
-	// REMOVE all keywords from this submission. To avoid clearing the keywords when
-	// updating a submission, simply do not send the keywords property and the
-	// existing keywords will be preserved.
+	// Keywords replaces the entire keyword list when provided.
+	// Leave it nil to preserve current keywords, or pass an empty slice to clear them.
 	Keywords []string `json:"-"`
 
-	Nudity         *BooleanYN `json:"tag[2],omitempty"`
-	MildViolence   *BooleanYN `json:"tag[3],omitempty"`
-	Sexual         *BooleanYN `json:"tag[4],omitempty"`
+	// Nudity toggles rating tag 2 using BooleanYN semantics.
+	Nudity *BooleanYN `json:"tag[2],omitempty"`
+	// MildViolence toggles rating tag 3 using BooleanYN semantics.
+	MildViolence *BooleanYN `json:"tag[3],omitempty"`
+	// Sexual toggles rating tag 4 using BooleanYN semantics.
+	Sexual *BooleanYN `json:"tag[4],omitempty"`
+	// StrongViolence toggles rating tag 5 using BooleanYN semantics.
 	StrongViolence *BooleanYN `json:"tag[5],omitempty"`
 
-	GuestBlock  *BooleanYN `json:"guest_block,omitempty"`
+	// GuestBlock toggles guest access using BooleanYN semantics.
+	GuestBlock *BooleanYN `json:"guest_block,omitempty"`
+	// FriendsOnly limits visibility to friends using BooleanYN semantics.
 	FriendsOnly *BooleanYN `json:"friends_only,omitempty"`
 }
 
-// EditSubmissionResponse represents the response from the edit_submission API endpoint.
+// EditSubmissionResponse is returned by Client.EditSubmission.
 type EditSubmissionResponse struct {
-	SubmissionID       IntString `json:"submission_id"` // Submission ID of the submission that was edited.
+	SubmissionID IntString `json:"submission_id"` // Submission ID of the submission that was edited.
+	// TwitterAuthSuccess reports whether Twitter authentication succeeded when tweeting was requested.
 	TwitterAuthSuccess BooleanYN `json:"twitter_authentication_success"`
 }
 

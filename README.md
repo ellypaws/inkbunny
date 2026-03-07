@@ -123,8 +123,8 @@ searchReq := inkbunny.SubmissionSearchRequest{
     OrderBy:            inkbunny.OrderByViews,
     Random:             inkbunny.No,
     DaysLimit:          inkbunny.IntString(30),
-    Keywords:           new(inkbunny.Yes),  // Search in keywords (boolean)
-    Title:              new(inkbunny.Yes),  // Also search in titles (boolean)
+    SearchInKeywords:   new(inkbunny.Yes),  // Search in keywords
+    Title:              new(inkbunny.Yes),  // Also search in titles
     UserID:             inkbunny.IntString(12345), // Limit results to those uploaded/owned by user with this User ID.
     Username:           "artist_name", // Limit results to those uploaded/owned by user with this Username only.
     RID:                "abc123",   // Results ID for paging through results (Mode 2)
@@ -235,10 +235,11 @@ editReq := inkbunny.SubmissionEditRequest{
 }
 
 // Edit the submission
-err := user.EditSubmission(editReq)
+resp, err := user.EditSubmission(editReq)
 if err != nil {
     log.Fatalf("Failed to edit submission: %v", err)
 }
+fmt.Printf("Edited submission %s\n", resp.SubmissionID)
 ```
 
 #### Understanding Pointer Values
@@ -317,8 +318,8 @@ fmt.Printf("Uploaded file with submission ID: %s\n", resp.SubmissionID)
 You can delete submissions:
 
 ```go
-// Delete a submission
-err := user.DeleteSubmission("123456")
+// Delete the submission created or modified by Upload
+err := resp.Delete()
 if err != nil {
     log.Fatalf("Failed to delete submission: %v", err)
 }
