@@ -3,7 +3,6 @@ package inkbunny
 import (
 	"bytes"
 	"context"
-	"encoding/json"
 	"fmt"
 	"iter"
 	"regexp"
@@ -163,39 +162,8 @@ type SubmissionSearch struct {
 
 // SearchParam is the search parameters that were used to find these search results.
 type SearchParam struct {
-	Name  string `json:"param_name"`
-	Value any    `json:"param_value"`
-}
-
-func (s *SearchParam) UnmarshalJSON(data []byte) error {
-	type rawSearchParam struct {
-		Name  string `json:"param_name"`
-		Value string `json:"param_value"`
-	}
-
-	var raw rawSearchParam
-	if err := json.Unmarshal(data, &raw); err != nil {
-		return err
-	}
-
-	s.Name = raw.Name
-	s.Value = raw.Value
-	s.Type = raw.Value
-	return nil
-}
-
-func (s SearchParam) MarshalJSON() ([]byte, error) {
-	value := s.Value
-	if value == "" {
-		value = s.Type
-	}
-
-	type rawSearchParam struct {
-		Name  string `json:"param_name"`
-		Value string `json:"param_value"`
-	}
-
-	return json.Marshal(rawSearchParam{Name: s.Name, Value: value})
+	Name  string `json:"param_name"`  // Search parameter name. These match the search parameter names described in Search Condition Parameters above.
+	Value any    `json:"param_value"` // Search parameter value. These match the allowed search parameter values described in Search Condition Parameters above.
 }
 
 type SubmissionType int
