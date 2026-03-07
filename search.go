@@ -164,10 +164,7 @@ type SubmissionSearch struct {
 // SearchParam is the search parameters that were used to find these search results.
 type SearchParam struct {
 	Name  string `json:"param_name"`
-	Value string `json:"param_value"`
-	// Type is kept as a compatibility alias for older code that read the search
-	// parameter value from this field before the Inkbunny tag mapping was corrected.
-	Type string `json:"-"`
+	Value any    `json:"param_value"`
 }
 
 func (s *SearchParam) UnmarshalJSON(data []byte) error {
