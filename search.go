@@ -236,23 +236,19 @@ func (s *SubmissionSearchResponse) WithClient(c *Client) *SubmissionSearchRespon
 }
 
 // AllPages returns a sequence of all the pages in a submission search response, repeatedly calling Client.SearchSubmissions.
-// Make sure you set SubmissionSearchRequest.GetRID to types.Yes prior or the other pages might not have the correct results.
+// Make sure you set SubmissionSearchRequest.GetRID to Yes prior or the other pages might not have the correct results.
 // Additionally, one should also check SubmissionSearchResponse.RIDTTLDuration or SubmissionSearchResponse.RIDExpiry.
-func (s SubmissionSearchResponse) AllPages() iter.Seq2[SubmissionSearchResponse, error] {
+func (s SubmissionSearchRequest) AllPages() iter.Seq2[SubmissionSearchResponse, error] {
 	return func(yield func(SubmissionSearchResponse, error) bool) {
-		for i := range s.PagesCount.Iter() {
-			if i == 0 {
-				if !yield(s, nil) {
-					return
-				}
-				continue
-			}
-			request := SubmissionSearchRequest{
-				SID:  s.SID,
-				RID:  s.RID,
-				Page: i + 1,
-			}
-			if !yield(s.client.Get().SearchSubmissions(request)) {
+		client := DefaultClient.Get()
+		result, err := client.SearchSubmissions(s)
+		if !yield(result, err) {
+			return
+		}
+		s.GetRID = No
+		for range result.PagesCount - result.Page {
+			s.Page++
+			if !yield(client.SearchSubmissions(s)) {
 				return
 			}
 		}
@@ -260,24 +256,19 @@ func (s SubmissionSearchResponse) AllPages() iter.Seq2[SubmissionSearchResponse,
 }
 
 // AllSubmissions returns a sequence of all submission lists across all pages of the search results, repeatedly calling Client.SearchSubmissions.
-// Make sure you set SubmissionSearchRequest.GetRID to types.Yes prior or the other pages might not have the correct results.
+// Make sure you set SubmissionSearchRequest.GetRID to Yes prior or the other pages might not have the correct results.
 // Additionally, one should also check SubmissionSearchResponse.RIDTTLDuration or SubmissionSearchResponse.RIDExpiry.
-func (s SubmissionSearchResponse) AllSubmissions() iter.Seq2[[]SubmissionSearch, error] {
+func (s SubmissionSearchRequest) AllSubmissions() iter.Seq2[[]SubmissionSearch, error] {
 	return func(yield func([]SubmissionSearch, error) bool) {
-		for i := range s.PagesCount.Iter() {
-			if i == 0 {
-				if !yield(s.Submissions, nil) {
+		for res, err := range s.AllPages() {
+			if err != nil {
+				if !yield(nil, err) {
 					return
 				}
 				continue
 			}
-			request := SubmissionSearchRequest{
-				SID:  s.SID,
-				RID:  s.RID,
-				Page: i + 1,
-			}
-			response, err := s.client.Get().SearchSubmissions(request)
-			if !yield(response.Submissions, err) {
+
+			if !yield(res.Submissions, nil) {
 				return
 			}
 		}
@@ -300,20 +291,33 @@ func (s SubmissionSearchResponse) Details() (SubmissionDetailsResponse, error) {
 // search results. The provided SubmissionDetailsRequest is used as a template; SID and
 // SubmissionIDSlice are overwritten per page. Fields like ShowDescription, ShowPools, etc.
 // are forwarded as-is.
-func (s SubmissionSearchResponse) AllDetails(req SubmissionDetailsRequest) iter.Seq2[SubmissionDetailsResponse, error] {
+func (s SubmissionSearchRequest) AllDetails(req SubmissionDetailsRequest) iter.Seq2[SubmissionDetailsResponse, error] {
 	return func(yield func(SubmissionDetailsResponse, error) bool) {
+		client := DefaultClient.Get()
+
 		for page, err := range s.AllPages() {
 			if err != nil {
-				yield(SubmissionDetailsResponse{}, err)
-				return
+				if !yield(SubmissionDetailsResponse{}, err) {
+					return
+				}
+				continue
 			}
+
+			if len(page.Submissions) == 0 {
+				continue
+			}
+
 			ids := make([]string, len(page.Submissions))
 			for i, sub := range page.Submissions {
 				ids[i] = sub.SubmissionID.String()
 			}
-			req.SID = page.SID
-			req.SubmissionIDSlice = ids
-			if !yield(s.client.Get().SubmissionDetails(req)) {
+
+			r := req
+			r.SID = page.SID
+			r.SubmissionIDs = ""
+			r.SubmissionIDSlice = ids
+
+			if !yield(client.SubmissionDetails(r)) {
 				return
 			}
 		}
