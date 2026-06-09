@@ -3,6 +3,7 @@ package inkbunny
 import (
 	"context"
 	"io"
+	"strings"
 )
 
 // SubmissionEditRequest configures Client.EditSubmission.
@@ -108,6 +109,9 @@ func (c *Client) EditSubmissionContext(ctx context.Context, req SubmissionEditRe
 	}
 
 	values := structToUrlValues(req)
+	if req.Keywords != nil {
+		values.Set("keywords", strings.Join(req.Keywords, ","))
+	}
 	if req.Notify != nil && !req.Notify.Bool() && req.Public != nil && req.Public.Bool() {
 		values.Set("visibility", "yes_nowatch")
 	}

@@ -177,18 +177,34 @@ const (
 type OrderBy = string
 
 const (
-	OrderByDefault        OrderBy = "create_datetime"
+	// OrderByDefault orders by submission creation time, newest first.
+	OrderByDefault OrderBy = "create_datetime"
+	// OrderByCreateDatetime orders by submission creation time, newest first.
 	OrderByCreateDatetime OrderBy = "create_datetime"
+	// OrderByLastFileUpdateDatetime orders by the most recent attached file update.
+	OrderByLastFileUpdateDatetime OrderBy = "last_file_update_datetime"
+	// OrderByUnreadDatetime orders unread submissions by unread time, newest first.
 	OrderByUnreadDatetime OrderBy = "unread_datetime"
-	OrderByViews          OrderBy = "views"
-	OrderByTotalPrint     OrderBy = "total_print_sales"
-	OrderByTotalDigital   OrderBy = "total_digital_sales"
-	OrderByTotalSales     OrderBy = "total_sales"
-	OrderByUsername       OrderBy = "username"
-	OrderByFavDatetime    OrderBy = "fav_datetime"
-	OrderByFavStars       OrderBy = "fav_stars"
-	OrderByFavs           OrderBy = "favs" // undocumented but exists
-	OrderByPoolOrder      OrderBy = "pool_order"
+	// OrderByUnreadDatetimeReverse orders unread submissions by unread time, oldest first.
+	OrderByUnreadDatetimeReverse OrderBy = "unread_datetime_reverse"
+	// OrderByViews orders by view count.
+	OrderByViews OrderBy = "views"
+	// OrderByTotalPrint orders by print sales count.
+	OrderByTotalPrint OrderBy = "total_print_sales"
+	// OrderByTotalDigital orders by digital sales count.
+	OrderByTotalDigital OrderBy = "total_digital_sales"
+	// OrderByTotalSales orders by total sales count.
+	OrderByTotalSales OrderBy = "total_sales"
+	// OrderByUsername orders by artist username.
+	OrderByUsername OrderBy = "username"
+	// OrderByFavDatetime orders favorites by the time they were favorited.
+	OrderByFavDatetime OrderBy = "fav_datetime"
+	// OrderByFavStars orders favorites by assigned favorite stars.
+	OrderByFavStars OrderBy = "fav_stars"
+	// OrderByFavs orders by favorite count.
+	OrderByFavs OrderBy = "favs" // undocumented but exists
+	// OrderByPoolOrder orders by submission order within a pool.
+	OrderByPoolOrder OrderBy = "pool_order"
 )
 
 // SalesFilter for SubmissionSearchRequest.

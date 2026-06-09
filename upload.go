@@ -38,7 +38,7 @@ type FileContent struct {
 //
 // This type intentionally uses plain Go values instead of mirroring the raw
 // form expected by Inkbunny
-// form exactly. Notify uses bool, file payloads are carried separately from JSON
+// form exactly. File payloads are carried separately from JSON
 // tags, and Context can override the client's default request context.
 type UploadRequest struct {
 	Context context.Context `json:"-"` // Override the context.Context used instead of the one in Client.
@@ -50,7 +50,7 @@ type UploadRequest struct {
 	// ProgressKey enables UploadProgress when Inkbunny supports it.
 	ProgressKey string `json:"progress_key,omitempty"` // Deprecated: currently broken in the API
 	// Notify follows the upload endpoint's watcher-notification behavior.
-	Notify bool `json:"notify,omitempty"`
+	Notify BooleanYN `json:"notify"`
 	// Files is the ordered list of files to upload.
 	Files []FileUpload `json:"-"`
 	// ZipFile uploads one ZIP archive instead of explicit Files.

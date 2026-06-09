@@ -134,6 +134,7 @@ type SubmissionSearchResponse struct {
 	// Submissions contains the returned search results unless suppressed.
 	Submissions []SubmissionSearch `json:"submissions,omitempty"`
 	client      *Client
+	request     SubmissionSearchRequest
 }
 
 // KeywordList describes one keyword aggregate from a search response.
@@ -235,8 +236,8 @@ func (s *SubmissionSearchResponse) WithClient(c *Client) *SubmissionSearchRespon
 	return s
 }
 
-// AllPages returns a sequence of all the pages in a submission search response, repeatedly calling Client.SearchSubmissions.
-// Make sure you set SubmissionSearchRequest.GetRID to Yes prior or the other pages might not have the correct results.
+// AllPages returns a sequence of all pages for this request.
+// The first request should set GetRID to Yes when stable RID-backed paging is required.
 // Additionally, one should also check SubmissionSearchResponse.RIDTTLDuration or SubmissionSearchResponse.RIDExpiry.
 func (s SubmissionSearchRequest) AllPages() iter.Seq2[SubmissionSearchResponse, error] {
 	return func(yield func(SubmissionSearchResponse, error) bool) {
@@ -245,19 +246,18 @@ func (s SubmissionSearchRequest) AllPages() iter.Seq2[SubmissionSearchResponse, 
 		if !yield(result, err) {
 			return
 		}
-		s.GetRID = No
-		for range result.PagesCount - result.Page {
-			s.Page++
-			if !yield(client.SearchSubmissions(s)) {
+		if err != nil {
+			return
+		}
+		for page, err := range result.allPagesFromFirst(s, client) {
+			if !yield(page, err) {
 				return
 			}
 		}
 	}
 }
 
-// AllSubmissions returns a sequence of all submission lists across all pages of the search results, repeatedly calling Client.SearchSubmissions.
-// Make sure you set SubmissionSearchRequest.GetRID to Yes prior or the other pages might not have the correct results.
-// Additionally, one should also check SubmissionSearchResponse.RIDTTLDuration or SubmissionSearchResponse.RIDExpiry.
+// AllSubmissions returns a sequence of all submission lists across all pages of this request.
 func (s SubmissionSearchRequest) AllSubmissions() iter.Seq2[[]SubmissionSearch, error] {
 	return func(yield func([]SubmissionSearch, error) bool) {
 		for res, err := range s.AllPages() {
@@ -269,6 +269,61 @@ func (s SubmissionSearchRequest) AllSubmissions() iter.Seq2[[]SubmissionSearch, 
 			}
 
 			if !yield(res.Submissions, nil) {
+				return
+			}
+		}
+	}
+}
+
+// AllPages returns pages after the current response using RID-backed paging.
+// The receiver itself is yielded first, followed by page+1 through pages_count.
+func (s SubmissionSearchResponse) AllPages() iter.Seq2[SubmissionSearchResponse, error] {
+	return func(yield func(SubmissionSearchResponse, error) bool) {
+		if !yield(s, nil) {
+			return
+		}
+		for page, err := range s.allPagesFromFirst(s.request, s.client.Get()) {
+			if !yield(page, err) {
+				return
+			}
+		}
+	}
+}
+
+// AllSubmissions returns submission lists across all pages after the current response.
+func (s SubmissionSearchResponse) AllSubmissions() iter.Seq2[[]SubmissionSearch, error] {
+	return func(yield func([]SubmissionSearch, error) bool) {
+		for res, err := range s.AllPages() {
+			if err != nil {
+				if !yield(nil, err) {
+					return
+				}
+				continue
+			}
+
+			if !yield(res.Submissions, nil) {
+				return
+			}
+		}
+	}
+}
+
+func (s SubmissionSearchResponse) allPagesFromFirst(req SubmissionSearchRequest, client *Client) iter.Seq2[SubmissionSearchResponse, error] {
+	return func(yield func(SubmissionSearchResponse, error) bool) {
+		if s.RID == "" || s.PagesCount <= s.Page {
+			return
+		}
+
+		if req.SID == "" {
+			req.SID = s.SID
+		}
+		req.RID = s.RID
+		req.GetRID = No
+		start := s.Page.Int() + 1
+		for page := start; page <= s.PagesCount.Int(); page++ {
+			req.Page = IntString(page)
+			result, err := client.SearchSubmissions(req)
+			if !yield(result, err) || err != nil {
 				return
 			}
 		}
@@ -362,6 +417,7 @@ func (c *Client) SearchSubmissionsContext(ctx context.Context, req SubmissionSea
 		response.RIDTTLDuration = TTLToDuration(response.RIDTTL)
 		response.RIDExpiry = time.Now().Add(response.RIDTTLDuration)
 	}
+	response.request = req
 
 	return response, err
 }
